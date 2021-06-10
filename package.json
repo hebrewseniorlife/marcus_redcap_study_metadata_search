@@ -1,0 +1,24 @@
+{
+  "name": "marcus_redcap_study_metadata_search",
+  "version": "0.0.1",
+  "description": "REDCap External Module to provide study metadata search functions across projects.",
+  "main": "index.js",
+  "scripts" : {
+    "build": "grunt default"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hebrewseniorlife/marcus_redcap_study_metadata_search.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hebrewseniorlife/marcus_redcap_study_metadata_search/issues"
+  },
+  "homepage": "https://github.com/hebrewseniorlife/marcus_redcap_study_metadata_search#readme",
+  "dependencies": {
+    "grunt": "^1.4.1",
+    "grunt-cli": "^1.4.3",
+    "grunt-contrib-compress": "^2.0.0"
+  }
+}

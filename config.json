@@ -1,0 +1,104 @@
+{
+	"name": "Marcus REDCap Study Metadata Search",
+
+	"namespace": "Marcus\\StudyMetadataSearch\\ExternalModule",
+
+	"description": "This module faciliates searching study metadata (data dictionaries) across projects",
+
+	"documentation": "README.md",
+
+	"framework-version" : 5,
+
+	"authors": [
+		{
+			"name": "Jason Rightmyer",
+			"email": "jasonrightmyer@hsl.harvard.edu",
+			"institution": "Marcus Institute for Aging Research"
+		}
+	],
+
+	"permissions": [],
+	
+	"enable-every-page-hooks-on-system-pages": false,	
+
+	"links": {
+		"project": [
+			{
+				"key": "project-metadata-search",
+				"name": "Metadata Search",
+				"icon": "fas fa-search",
+				"url": "index.php"
+			}								
+		],
+		"control-center": [
+			{
+				"key": "control-center-metadata-search",
+				"name": "Metadata Search",
+				"icon": "fas fa-search",
+				"url": "index.php"
+			}	
+		 ]
+	},
+
+	"no-auth-pages": [
+		"public"
+	],
+
+	"project-settings": [
+		{
+			"key": "index-enabled",
+			"name": "Index Enabled",
+			"required": true,
+			"type": "dropdown",
+			"choices" : [
+				{
+					"name" : "Enabled",
+					"value" : true
+				},
+				{
+					"name" : "Disabled",
+					"value" : false
+				}
+			]
+		},
+		{
+			"key": "forms-denylist",
+			"name": "Forms Denylist (excluded from index)",
+			"required": false,
+			"type": "text"
+		}
+	],
+
+	"system-settings": [
+		{
+			"key": "api-keys",
+			"name": "API Keys",
+			"required": false,
+			"type": "sub_settings",
+			"repeatable":true,
+			"sub_settings":[
+				{
+				   "key": "api-key",
+				   "name": "Unique API Key (used in URL)",
+				   "required": true,
+				   "type": "text"
+				},
+				{
+				   "key": "api-name",
+				   "name": "Common name or reference",
+				   "required": true,
+				   "type": "text"
+				}
+			]
+		}
+	],
+
+	"crons": [],
+
+	"compatibility": {
+		"php-version-min": "7.2.0",
+		"php-version-max": "",
+		"redcap-version-min": "10.0.1",
+		"redcap-version-max": ""
+	}
+}
