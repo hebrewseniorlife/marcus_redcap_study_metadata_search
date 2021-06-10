@@ -11,5 +11,8 @@
             "name": "Jason Rightmyer",
             "email": "jasonrightmyer@hsl.harvard.edu"
         }
-    ]
+    ],
+    "autoload": {
+        "psr-4": { "": "app/src/" }
+    }
 }
