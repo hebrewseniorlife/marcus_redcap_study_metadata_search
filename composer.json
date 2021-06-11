@@ -4,7 +4,9 @@
     "require": {
         "twig/twig": "^3.3",
         "symfony/http-foundation": "^5.3",
-        "monolog/monolog": "^2.2"
+        "monolog/monolog": "^2.2",
+        "vfou/php-search": "^1.1",
+        "twig/string-extra": "^3.3"
     },
     "authors": [
         {

@@ -1,0 +1,70 @@
+{% extends "base.twig" %}
+
+{% block body %}
+
+<div class="row">
+  <div class="col-md-9">
+
+    <div class="card">
+      <h5 class="card-header">Settings</h5>
+      <div class="card-body">
+        <table class="table">
+          <tr>
+            <th>Temp Directory:</th>
+            <td>{{ app_temp_path }}</td>
+          </tr>
+          <tr>
+            <th>Search Provider:</th>
+            <td>{{ search_provider }}</td>
+          </tr>      
+          <tr>
+            <th>Projects:</th>
+            <td>
+              <ul class="list-group">
+                {% for project in projects %}
+                  <li class="list-group-item">{{ project.title }} 
+                  {% if project.enabled %}
+                    <span class="badge badge-success badge-pill">enabled</span>
+                  {% else %}
+                    <span class="badge badge-warning badge-pill">disabled</span>
+                  {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>   
+        </table>
+      </div>
+    </div>
+  </div>      
+</div>
+<br/>
+<div class="row">
+  <div class="col-md-9">
+    <div class="card">
+      <h5 class="card-header">Engine</h5>
+      <div class="card-body">
+        <table class="table">
+          <thead>
+              <tr>
+      <th scope="col">Project</th>
+      <th scope="col">Documents</th>
+
+            </tr>
+          </thead>
+          <tbody>          
+          {% for project in projects %}
+            <tr>
+              <th>{{ project.title }}</th>
+              <td>{{ project.documents | length }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
