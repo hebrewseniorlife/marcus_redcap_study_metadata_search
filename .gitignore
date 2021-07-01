@@ -6,3 +6,13 @@ composer.phar
 /node_modules/
 
 debug.log
+
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+yarn-error.log

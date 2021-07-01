@@ -27,7 +27,7 @@
 				"key": "project-metadata-search",
 				"name": "Metadata Search",
 				"icon": "fas fa-search",
-				"url": "index.php?view=project"
+				"url": "index.php"
 			}								
 		],
 		"control-center": [
@@ -35,7 +35,7 @@
 				"key": "control-center-metadata-search",
 				"name": "Metadata Search",
 				"icon": "fas fa-search",
-				"url": "index.php?view=system"
+				"url": "index.php"
 			}	
 		 ]
 	},

@@ -17,22 +17,6 @@
             <th>Search Provider:</th>
             <td>{{ search_provider }}</td>
           </tr>      
-          <tr>
-            <th>Projects:</th>
-            <td>
-              <ul class="list-group">
-                {% for project in projects %}
-                  <li class="list-group-item">{{ project.title }} 
-                  {% if project.enabled %}
-                    <span class="badge badge-success badge-pill">enabled</span>
-                  {% else %}
-                    <span class="badge badge-warning badge-pill">disabled</span>
-                  {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            </td>
-          </tr>   
         </table>
       </div>
     </div>
@@ -42,12 +26,13 @@
 <div class="row">
   <div class="col-md-9">
     <div class="card">
-      <h5 class="card-header">Engine</h5>
+      <h5 class="card-header">Sources</h5>
       <div class="card-body">
         <table class="table">
           <thead>
               <tr>
       <th scope="col">Project</th>
+      <th scope="col">Status</th>
       <th scope="col">Documents</th>
 
             </tr>
@@ -56,6 +41,13 @@
           {% for project in projects %}
             <tr>
               <th>{{ project.title }}</th>
+              <td>
+                  {% if project.enabled %}
+                    <span class="badge badge-success badge-pill">enabled</span>
+                  {% else %}
+                    <span class="badge badge-warning badge-pill">disabled</span>
+                  {% endif %}              
+              </td>
               <td>{{ project.documents | length }}</td>
             </tr>
           {% endfor %}
@@ -66,5 +58,24 @@
     </div>
   </div>
 </div>
-
+<br/>
+<div class="row">
+  <div class="col-md-9">
+    <div class="card">
+      <h5 class="card-header">Engine Statistics</h5>
+      <div class="card-body">
+        <table class="table">
+          <tbody>          
+          {% for prop, value in stats %}
+            <tr>
+              <th>{{ prop }}</th>
+              <td>{{ value }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -22,7 +22,11 @@ class AppController {
     function __construct(object $module)
     {
         $this->module = $module;
-        $this->template = new TemplateEngine($module->getModulePath()."app/resources/templates/");        
+        $this->template = new TemplateEngine([
+            'root'      => $module->getModulePath()."app/resources/templates/",
+            'system'    => $module->getModulePath()."app/resources/templates/system",
+            'project'   => $module->getModulePath()."app/resources/templates/project"
+        ]);        
     }
 
     function handle(Request $request, Response $reponse) : Response{

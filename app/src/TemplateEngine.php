@@ -15,12 +15,20 @@ class TemplateEngine{
     /**
      * __construct
      *
-     * @param  mixed $templateFolder
+     * @param  mixed $paths
      * @param  mixed $debug
      * @return void
      */
-    function __construct(string $templateFolder = "", bool $debug = false) {
-        $this->environment = new Environment(new FilesystemLoader($templateFolder),['debug' => $debug]);
+    function __construct($paths = [], bool $debug = false) {
+        
+        $loader = new FilesystemLoader($paths);
+        if ($this->isAssoc($paths)){
+            foreach($paths as $key => $path){
+                $loader->addPath($path, $key);
+            }    
+        }
+
+        $this->environment = new Environment($loader,['debug' => $debug]);
         $this->environment->addExtension(new StringExtension());
 
         if ($debug){
@@ -56,5 +64,11 @@ class TemplateEngine{
         
         $template = $environment->createTemplate($stringTemplate);
         return $template->render($context); 
+    }
+
+    public function isAssoc(array $arr = [])
+    {
+        if (array() === $arr) return false;
+        return array_keys($arr) !== range(0, count($arr) - 1);
     }
 }

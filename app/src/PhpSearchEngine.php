@@ -1,9 +1,17 @@
 <?php
 
 use VFou\Search\Engine as Engine;
-use Models\SearchEngineSettings as SearchEngineSettings;
+use VFou\Search\Tokenizers\LowerCaseTokenizer as LowerCaseTokenizer;
+use VFou\Search\Tokenizers\WhiteSpaceTokenizer as WhiteSpaceTokenizer;
+use VFou\Search\Tokenizers\TrimPunctuationTokenizer as TrimPunctuationTokenizer;
+use VFou\Search\Tokenizers\WordSeparatorTokenizer as WordSeparatorTokenizer;
+use VFou\Search\Tokenizers\IntegerSeparatorTokenizer as IntegerSeparatorTokenizer;
 
-class PhpSearchEngine extends ISearchEngine {    
+
+use Models\SearchEngineSettings as SearchEngineSettings;
+use ISearchEngine as ISearchEngine;
+
+class PhpSearchEngine implements ISearchEngine {    
     /**
      * Engine
      *
@@ -21,18 +29,39 @@ class PhpSearchEngine extends ISearchEngine {
     {
         $configuration = [
             "config"    => PhPSearchEngine::getConfig($settings),
-            "schemas"   => PhpSearchEngine::getSchema($settings)
+            "schemas"   => [
+                "document" => PhpSearchEngine::getSchema($settings)
+            ],
+            "types" => [
+                "_default" => [
+                    LowerCaseTokenizer::class,
+                    WhiteSpaceTokenizer::class,
+                    TrimPunctuationTokenizer::class
+                ],
+                "key" => [
+                    WordSeparatorTokenizer::class,
+                    LowerCaseTokenizer::class,
+                    WhiteSpaceTokenizer::class,
+                    TrimPunctuationTokenizer::class
+                ],
+                "integer" => [
+                    IntegerSeparatorTokenizer::class   
+                ]
+            ]
         ];
+
         $this->engine = new Engine($configuration);
     }
     
     /**
      * update
      *
-     * @param  mixed $document
+     * @param  Document $document
      * @return void
      */
     function update(array $document){
+        $document["type"] = "document";
+
         $this->engine->update($document);
     }
     
@@ -44,11 +73,37 @@ class PhpSearchEngine extends ISearchEngine {
      * @return void
      */
     function search(string $phrase, array $options){
-        return $this->engine->search($phrase);
+        return $this->engine->search($phrase, ['limit' => 100, 'facets' => ['project_title', 'entity', 'form_name']]);
+    }
+    
+    /**
+     * rebuild
+     *
+     * @return void
+     */
+    function rebuild(){
+        $this->engine->getIndex()->rebuild();
+    }
+        
+    /**
+     * getStats
+     *
+     * @return array
+     */
+    function getStats() : array {
+        return $this->engine->getIndex()->getStats();
+    }
+    
+    /**
+     * getDocument
+     *
+     * @param  string $id
+     * @return void
+     */
+    function getDocument(string $id) {
+        return $this->engine->getIndex()->getDocument($id);
     }
 
-
-    
     /**
      * getConfig
      *
@@ -57,18 +112,10 @@ class PhpSearchEngine extends ISearchEngine {
      */
     static function getConfig(SearchEngineSettings $settings) : array {
         return [
-            "var_dir"       => APP_PATH_TEMP."marcus-searchengine".DIRECTORY_SEPARATOR."var",
-            "index_dir"     => APP_PATH_TEMP."marcus-searchengine".DIRECTORY_SEPARATOR."index",
-            "documents_dir" => APP_PATH_TEMP."marcus-searchengine".DIRECTORY_SEPARATOR."documents",
-            "cache_dir"     => APP_PATH_TEMP."marcus-searchengine".DIRECTORY_SEPARATOR."cache",
-            "fuzzy_cost" => 1,
-            "connex" => [
-                'threshold' => 0.9,
-                'min' => 3,
-                'max' => 10,
-                'limitToken' => 20,
-                'limitDocs' => 10
-            ],
+            "var_dir"       => APP_PATH_TEMP."marcus-search-engine".DIRECTORY_SEPARATOR,
+            "index_dir"     => "index",
+            "documents_dir" => "documents",
+            "cache_dir"     => "cache",
             "serializableObjects" => [
                 DateTime::class => function($datetime) { /** @var DateTime $datetime */ return $datetime->getTimestamp(); }
             ]
@@ -83,27 +130,49 @@ class PhpSearchEngine extends ISearchEngine {
      */
     static function getSchema(SearchEngineSettings $settings) : array {
         return [
-            "title" => [
-                "_type" => "string",
+            "name" => [
+                "_type" => "key",
+                "_indexed" => true,
+                "_boost" => 5
+            ],
+            "label" => [
+                "_type" => "_default",
                 "_indexed" => true,
                 "_boost" => 10
             ],
-            "content" => [
-                "_type" => "text",
-                "_indexed" => true,
-                "_boost" => 0.5
-            ],
-            "date" => [
-                "_type" => "datetime",
-                "_indexed" => true,
-                "_boost" => 2
-            ],
-            "categories" => [
-                "_type" => "list",
-                "_type." => "string",
+            "entity" => [
+                "_type" => "_default",
                 "_indexed" => true,
                 "_filterable" => true,
-                "_boost" => 6
+                "_boost" => 2
+            ],
+            "project_title" => [
+                "_type" => "_default",
+                "_indexed" => true,
+                "_filterable" => true,
+                "_boost" => 2
+            ],
+            "field_type" => [
+                "_type" => "_default",
+                "_indexed" => true,
+                "_filterable" => true,
+                "_boost" => 2
+            ],
+            "form_name" => [
+                "_type" => "key",
+                "_indexed" => true,
+                "_filterable" => true,
+                "_boost" => 3
+            ],
+            "project_id" => [
+                "_type" => "integer",
+                "_indexed" => false,
+                "_filterable" => false
+            ],            
+            "context" => [
+                "_type" => "_default",
+                "_indexed" => false,
+                "_filterable" => false
             ]
         ];
     }

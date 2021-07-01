@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "REDCap External Module to provide study metadata search functions across projects.",
   "main": "index.js",
-  "scripts" : {
+  "scripts": {
     "build": "grunt default"
   },
   "repository": {

@@ -2,7 +2,9 @@
 
 namespace Controllers;
 
+use Models\SearchEngineSettings;
 use ProjectService;
+use SearchEngineService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 
@@ -41,16 +43,20 @@ class SystemController extends AppController {
      */
     function view(Request $request, Response $response) : Response { 
 
-        $service    = new ProjectService($this->module);
-        $projects   = $service->getProjects();
+       $projectService    = new ProjectService($this->module);
+       $projects          = $projectService->getProjects();
+
+       $searchService    = new SearchEngineService($this->module);
+       $searchService->updateAll($projects);
 
         $context = $this->createContext("System View", [
             "search_provider"   => "PhpSearchEngine",
             "app_temp_path"     => APP_PATH_TEMP,
-            "projects"          => $projects
+            "projects"          => $projects,
+            "stats"             => $searchService->getStats()
         ]);
         
-        $content = $this->template->render("system-view.twig", $context);
+        $content = $this->template->render("@system/view.twig", $context);
 
         $response->setContent($content);
         $response->setStatusCode(Response::HTTP_OK);

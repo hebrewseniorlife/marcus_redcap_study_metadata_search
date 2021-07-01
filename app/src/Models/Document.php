@@ -1,14 +1,14 @@
-<?
+<?php
 
 namespace Models;
 
 class Document {    
     /**
-     * uid
+     * id
      *
      * @var mixed
      */
-    public $uid;
+    public $id;
         
     /**
      * name
@@ -22,28 +22,28 @@ class Document {
      *
      * @var mixed
      */
-    public $type;
+    public $entity;
     
     /**
-     * descrtipion
+     * label
      *
      * @var string
      */
-    public $descrtipion;
+    public $label;
     
     /**
-     * dataType
+     * field_type
      *
      * @var string
      */
-    public $datatype;
+    public $field_type;
     
     /**
-     * form
+     * form_name
      *
      * @var string
      */
-    public $form;
+    public $form_name;
     
     /**
      * project_id
@@ -51,4 +51,18 @@ class Document {
      * @var int
      */
     public $project_id;
+        
+    /**
+     * project_title
+     *
+     * @var string
+     */
+    public $project_title;
+    
+    /**
+     * data
+     *
+     * @var array
+     */
+    public $context;
 }

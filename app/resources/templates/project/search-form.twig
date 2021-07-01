@@ -1,0 +1,14 @@
+
+<form action="{{paths.module | raw}}" accept-charset="UTF-8" method="get">
+    <input type="hidden" name="prefix" value="{{ module.prefix }}"/>
+    <input type="hidden" name="pid" value="{{ module.pid }}"/>
+    <input type="hidden" name="page" value="index"/>
+    <input type="hidden" name="action" value="search"/>
+
+    <div class="input-group">
+        <input type="text" class="form-control" id="search" name="search" placeholder="form or field name...">
+        <span class="input-group-btn ml-3">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </span>
+    </div>
+</form>

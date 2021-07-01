@@ -1,6 +1,7 @@
 <?php
 
-use Models\Project;
+use Models\Document as Document;
+use Models\Project as Project;
 
 /**
  * ProjectService
@@ -70,8 +71,25 @@ class ProjectService {
         $project    = $this->module->getProject($pid);
         $metadata   = REDCap::getDataDictionary($pid, "array");
 
-        // $forms   = $this->module->query('select distinct form_name from redcap_metadata where project_id = ?', [$pid]);
-        
-        return $metadata;
+        $documents = [];
+        foreach($metadata as $field){
+            $document = new Document();
+
+            $document->id          = join("__",array($pid, $field["form_name"], $field["field_name"]));
+            $document->entity      = "field";
+            $document->name         = $field["field_name"];
+            $document->label        = $field["field_label"];
+
+            $document->project_id       = $pid;
+            $document->project_title    = $project->getTitle();
+
+            $document->form_name    = $field["form_name"];
+            $document->field_type   = $field["field_type"];
+
+            $document->context = $field;
+            array_push($documents, $document);
+        }
+
+        return $documents;
     }
 }

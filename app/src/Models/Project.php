@@ -2,6 +2,8 @@
 
 namespace Models;
 
+use Models\Document;
+
 class Project {
     /**
      * project_id
@@ -30,4 +32,20 @@ class Project {
      * @var array
      */
     public $documents = [];
+    
+    /**
+     * getDocument
+     *
+     * @param  string $id
+     * @return Document
+     */
+    public function getDocument(string $id = null) : Document{
+        foreach($this->documents as $document){
+            if ($document->id == $id){
+                return $document;
+            }
+        }
+
+        return null;
+    }
 }

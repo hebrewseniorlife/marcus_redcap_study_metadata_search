@@ -1,0 +1,45 @@
+
+<div class="row">
+    <div class="col-md-12">   
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Project</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Entity</th>
+                    <th scope="col">Label</th>
+                    <th scope="col">Data Type</th>
+                    <th scope="col">Choices/Calculation</th>
+                </tr>
+            </thead>     
+            <tbody>
+                
+        {% for id, document in results.documents %}
+                <tr>
+                    <th scope="row">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="document" value="{{ document.id }}">
+                        </div>                    
+                    </th>
+                    <td>{{ document.project_title }} ({{ document.project_id }})</td>
+                    <td>{{ document.name }}</td>
+                    <td>{{ document.entity }}</td>
+                    <td>{{ document.label }}</td>
+                    <td>{{ document.field_type }}</td>       
+                    <td>{{ document.context.select_choices_or_calculations | split("|") | join('</br>') | raw }}</td>  
+                </tr>     
+        {% else %}
+                <tr>
+                    <td colspan="7">
+                        <div class="bs-callout bs-callout-primary" style="background: white">
+                            No results found.
+                        </div>
+                    </td>
+                </tr>
+        {% endfor %}
+                
+            </tbody>
+        </table>
+    </div>
+</div>
