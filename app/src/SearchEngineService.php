@@ -38,9 +38,24 @@ class SearchEngineService {
      */
     function getSearchEngineSettings() : SearchEngineSettings 
     {
-        // Future version will get settings from system-level module settings...
-        $settings = new SearchEngineSettings("PhpSearchEngine");
-        $settings->providerSettings["temp_folder"] = sys_get_temp_dir();
+        $searchProviderName = $this->module->getSystemSetting("search-provider");
+        if (count($searchProviderName) == 0){
+            $searchProviderName = 'PhpSearchEngine';
+        }
+
+        $tempFolder = $this->module->getSystemSetting("temp-folder");
+        switch($tempFolder){
+            case 'system':
+                $tempFolderPath = sys_get_temp_dir();
+                break;
+            case 'redcap':
+            default:
+                $tempFolderPath = constant("APP_PATH_TEMP");
+                break;
+        }
+
+        $settings = new SearchEngineSettings($searchProviderName);
+        $settings->providerSettings["temp_folder"] = $tempFolderPath;
 
         return $settings;
     }

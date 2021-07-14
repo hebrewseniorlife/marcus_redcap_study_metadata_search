@@ -71,6 +71,34 @@
 
 	"system-settings": [
 		{
+			"key": "search-provider",
+			"name": "Search Engine Provider",
+			"required": true,
+			"type": "dropdown",
+			"choices" : [
+				{
+					"name" : "Php Search Engine",
+					"value" : "PhpSearchEngine"
+				}
+			]
+		},		
+		{
+			"key": "temp-folder",
+			"name": "Temp Folder Location",
+			"required": true,
+			"type": "dropdown",
+			"choices" : [
+				{
+					"name" : "System",
+					"value" : "system"
+				},
+				{
+					"name" : "REDCap",
+					"value" : "redcap"
+				}
+			]
+		},
+		{
 			"key": "api-keys",
 			"name": "API Keys",
 			"required": false,
