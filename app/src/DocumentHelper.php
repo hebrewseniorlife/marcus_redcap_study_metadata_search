@@ -1,9 +1,36 @@
 <?php
 
 use League\Csv\Writer;
+use Arrayy\Arrayy as A;
 use Models\Document;
 
-class DocumentHelper {    
+class DocumentHelper {        
+    /**
+     * writeToCsv
+     *
+     * @param  mixed $documents
+     * @return string
+     */
+    static function writeToCsv(array $documents) : string {
+        if (count($documents) == 0)
+        {
+            return "";
+        }
+        
+        $headers = array_keys($documents[0]);
+        $records = [];
+
+        foreach($documents as $document){
+            array_push($records, array_values($document));
+        }
+        
+        $csv = Writer::createFromString();
+        $csv->insertOne($headers);
+        $csv->insertAll($records);
+          
+        return $csv->getContent();         
+    }
+
     /**
      * writeToCsv
      *

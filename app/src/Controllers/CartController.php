@@ -139,14 +139,29 @@ class CartController extends ApiController{
      * @return Response
      */
     function export(Request $request, Response $response) : Response {       
-        $searchEngine = new SearchEngineService($this->module);
-        $documents = $searchEngine->getDocuments($this->cart->getAll());
+        $searchEngine   = new SearchEngineService($this->module);
+        $documents      = $searchEngine->getDocuments($this->cart->getAll());
 
-        $content = DocumentHelper::writeMetadataToCsv($documents);
-
+        $format = $request->get("format");
+        switch($format){
+            case 'csv':
+                $contentType = 'text/csv';
+                $content        = DocumentHelper::writeToCsv($documents);
+                break;
+            case 'json':
+                $contentType    = 'application/json';
+                $content        = json_encode($documents);
+                break;
+            case 'metadata':
+            default:
+                $contentType    = 'text/csv';
+                $content        = DocumentHelper::writeMetadataToCsv($documents);
+                break;
+        }
+        
         // Prepar the response and return it to the caller...
         $response->setContent($content);
-        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Type', $contentType);
         $response->setStatusCode(Response::HTTP_OK);
 
         return $response;  
