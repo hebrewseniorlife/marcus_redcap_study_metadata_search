@@ -1,0 +1,20 @@
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <h5 class="card-header">Engine Statistics</h5>
+      <div class="card-body">
+        <table class="table">
+          <tbody>          
+          {% for prop, value in stats %}
+            <tr>
+              <th>{{ prop }}</th>
+              <td>{{ value }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

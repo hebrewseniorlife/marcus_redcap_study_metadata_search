@@ -3,20 +3,22 @@
 {% block body %}
 
 <div class="row">
-  <div class="col-md-9">
+  <div class="col-md-12">
 
     <div class="card">
-      <h5 class="card-header">Settings</h5>
+      <h5 class="card-header">Engine Settings</h5>
       <div class="card-body">
         <table class="table">
           <tr>
-            <th>Temp Directory:</th>
-            <td>{{ app_temp_path }}</td>
+            <th>Provider:</th>
+            <td>{{ engine.providerName }}</td>
           </tr>
-          <tr>
-            <th>Search Provider:</th>
-            <td>{{ search_provider }}</td>
-          </tr>      
+          {% for key, setting in engine.providerSettings %}
+            <tr>
+              <th>{{ key }}:</th>
+              <td>{{ setting }}</td>
+            </tr>   
+          {% endfor %}
         </table>
       </div>
     </div>
@@ -24,17 +26,16 @@
 </div>
 <br/>
 <div class="row">
-  <div class="col-md-9">
+  <div class="col-md-12">
     <div class="card">
-      <h5 class="card-header">Sources</h5>
+      <h5 class="card-header">Document Sources</h5>
       <div class="card-body">
         <table class="table">
           <thead>
-              <tr>
-      <th scope="col">Project</th>
-      <th scope="col">Status</th>
-      <th scope="col">Documents</th>
-
+            <tr>
+              <th scope="col">Project</th>
+              <th scope="col">Status</th>
+              <th scope="col">Documents</th>
             </tr>
           </thead>
           <tbody>          
@@ -52,30 +53,33 @@
             </tr>
           {% endfor %}
           </tbody>
-
         </table>
+      </div>
+      <div class="card-footer">
+        <a class="btn btn-primary" href="{{ paths.reindex }}" role="button" style="color: white">Reindex All</a>
       </div>
     </div>
   </div>
 </div>
 <br/>
+{% include 'statistics.twig' %}
+</br>
 <div class="row">
-  <div class="col-md-9">
+  <div class="col-md-12">
     <div class="card">
-      <h5 class="card-header">Engine Statistics</h5>
+      <h5 class="card-header">Configuration</h5>
       <div class="card-body">
         <table class="table">
           <tbody>          
-          {% for prop, value in stats %}
             <tr>
-              <th>{{ prop }}</th>
-              <td>{{ value }}</td>
+              <th>Authenticated Search</th>
+              <td><a href="{{ paths.search }}">{{ paths.search }}</a></td>
             </tr>
-          {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}

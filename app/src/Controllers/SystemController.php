@@ -31,7 +31,15 @@ class SystemController extends AppController {
      * @return Response
      */
     function handle(Request $request, Response $response) : Response {
-        return $this->view($request, $response);
+        switch($request->get("action")){
+            case 'reindex':
+                return $this->reindex($request, $response);
+            break;
+            case 'view':
+            default:
+                return $this->view($request, $response);
+            break;                
+        }
     }
     
     /**
@@ -42,25 +50,44 @@ class SystemController extends AppController {
      * @return Response
      */
     function view(Request $request, Response $response) : Response { 
-
-       $projectService    = new ProjectService($this->module);
-       $projects          = $projectService->getProjects();
-
-       $searchService    = new SearchEngineService($this->module);
-       $searchService->updateAll($projects);
+        $searchService    = new SearchEngineService($this->module);
+        $projectService   = new ProjectService($this->module);
+        $projects         = $projectService->getProjects();
 
         $context = $this->createContext("System View", [
-            "search_provider"   => "PhpSearchEngine",
-            "app_temp_path"     => APP_PATH_TEMP,
-            "projects"          => $projects,
-            "stats"             => $searchService->getStats()
+            "engine"     => $searchService->getSearchEngineSettings(),
+            "projects"   => $projects,
+            "stats"      => $searchService->getStats(),
+            "paths"      => array(
+                "reindex"  => $this->module->getUrl('index.php')."&action=reindex"
+            )
         ]);
-        
         $content = $this->template->render("@system/view.twig", $context);
 
         $response->setContent($content);
         $response->setStatusCode(Response::HTTP_OK);
 
         return $response;
+    }
+
+    function reindex(Request $request, Response $response) : Response { 
+        $searchService      = new SearchEngineService($this->module);
+        $projectService     = new ProjectService($this->module);
+
+        $projects = $projectService->getProjects();
+        $searchService->updateAll($projects);
+
+        $context = $this->createContext("System Reindex", [
+            "engine"     => $searchService->getSearchEngineSettings(),
+            "projects"   => $projects,
+            "stats"      => $searchService->getStats()
+        ]);
+        $content = $this->template->render("@system/reindex.twig", $context);
+
+        $response->setContent($content);
+        $response->setStatusCode(Response::HTTP_OK);
+
+        return $response;
+
     }
 }

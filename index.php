@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\Response as Response;
 $request  = Request::createFromGlobals();
 $response = new Response();
 
-// $view = $request->get("view", "project");
 $pid        = $request->query->getInt("pid", -1);
 $isProject  = (isset($pid) && $pid > 0);
 

@@ -28,7 +28,14 @@ class AppController {
             'project'   => $module->getModulePath()."app/resources/templates/project"
         ]);        
     }
-
+    
+    /**
+     * handle
+     *
+     * @param  mixed $request
+     * @param  mixed $reponse
+     * @return Response
+     */
     function handle(Request $request, Response $reponse) : Response{
         return $reponse;
     }
@@ -48,13 +55,15 @@ class AppController {
                 "pid"       => $_GET["pid"]
             ),
             "paths" => array(
-                "public"    => $this->module->getUrl('public/'),
-                "css"       => $this->module->getUrl('public/css'),
-                "scripts"   => $this->module->getUrl('public/scripts'),
-                "current"   => $_SERVER['REQUEST_URI'],
+                "public"    => array(
+                        "root"      => $this->module->getUrl('public/'),
+                        "css"       => $this->module->getUrl('public/css'),
+                        "scripts"   => $this->module->getUrl('public/scripts')
+                ),
                 "module"    => APP_PATH_WEBROOT.'ExternalModules/?prefix='.$_GET["prefix"],
-                "redcap"    => APP_PATH_WEBROOT
-            )       
+                "search"    => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)."&action=search",
+                "api"       => $this->module->getUrl('public.php', $noAuth=false, $useApiEndpoint=true)
+            )     
         );
 
         return array_merge($context, $additional);

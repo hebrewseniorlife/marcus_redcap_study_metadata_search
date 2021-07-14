@@ -2,19 +2,7 @@
 
 {% block body %}
 
-<div class="row">
-    <div class="col-md-8">
-        {% include 'search-form.twig' %}
-    </div>
-</div>
-
-{% if results != null %}
-</br>
-<div class="row">
-    <div class="col-md-8">
-        {% include 'search-results.twig' %}
-    </div>
-</div>
-{% endif %}
+{% include 'search.twig' %}
+{% include 'cart.twig' %}
 
 {% endblock %}

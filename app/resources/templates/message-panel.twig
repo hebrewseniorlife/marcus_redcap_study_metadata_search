@@ -1,0 +1,16 @@
+
+<div id="{{ prefix }}-alert" class="bs-callout" style="display:none">
+  <span id="{{ prefix }}-alert-text"><strong>Message Placeholder</span>
+  <button type="button" class="close" onclick="$('#{{ prefix }}-alert').hide()" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#{{ prefix }}-alert').on('message', function(event, data) {
+      $('#{{ prefix }}-alert-text').text(data.text);
+      $(this).addClass('bs-callout-' + data.style).show();
+  });
+});
+</script>

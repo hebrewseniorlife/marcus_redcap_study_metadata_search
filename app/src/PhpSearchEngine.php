@@ -111,8 +111,10 @@ class PhpSearchEngine implements ISearchEngine {
      * @return array
      */
     static function getConfig(SearchEngineSettings $settings) : array {
+        $tempFolder = $settings->providerSettings["temp_folder"];
+
         return [
-            "var_dir"       => APP_PATH_TEMP."marcus-search-engine".DIRECTORY_SEPARATOR,
+            "var_dir"       => $tempFolder."marcus-search-engine".DIRECTORY_SEPARATOR,
             "index_dir"     => "index",
             "documents_dir" => "documents",
             "cache_dir"     => "cache",

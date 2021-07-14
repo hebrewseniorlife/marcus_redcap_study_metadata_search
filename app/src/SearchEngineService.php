@@ -39,7 +39,10 @@ class SearchEngineService {
     function getSearchEngineSettings() : SearchEngineSettings 
     {
         // Future version will get settings from system-level module settings...
-        return new SearchEngineSettings("PhpSearchEngine");
+        $settings = new SearchEngineSettings("PhpSearchEngine");
+        $settings->providerSettings["temp_folder"] = sys_get_temp_dir();
+
+        return $settings;
     }
     
     /**
@@ -99,5 +102,31 @@ class SearchEngineService {
      */
     function getDocument(string $id) {
         return $this->engine->getDocument($id);
+    }
+    
+    /**
+     * getDocuments
+     *
+     * @param  mixed $ids
+     * @return array
+     */
+    function getDocuments(array $ids) : array {
+        $documents = [];
+        foreach($ids as $id){
+            $document = $this->getDocument($id);
+            if ($document != null){
+                array_push($documents, $document);
+            }
+        }
+        return $documents;
+    }
+    
+    /**
+     * rebuild
+     *
+     * @return void
+     */
+    function rebuild(){
+        $this->engine->rebuild();
     }
 }
