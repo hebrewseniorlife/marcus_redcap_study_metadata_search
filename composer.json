@@ -1,6 +1,7 @@
 {
-    "name": "marcus/study_metadata_search",
+    "name": "marcus/marcus_study_metadata_search",
     "description": "REDCap external module for searching study metadata",
+    "version" : "0.1",
     "require": {
         "twig/twig": "^3.3",
         "symfony/http-foundation": "^5.3",
