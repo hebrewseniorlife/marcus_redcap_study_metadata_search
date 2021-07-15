@@ -54,46 +54,27 @@ class PhpSearchEngine implements ISearchEngine {
     }
     
     /**
-     * update
+     * updateDocument
      *
      * @param  Document $document
      * @return void
      */
-    function update(array $document){
+    function updateDocument(array $document){
         $document["type"] = "document";
 
         $this->engine->update($document);
     }
-    
-    /**
-     * search
-     *
-     * @param  mixed $phrase
-     * @param  mixed $options
-     * @return void
-     */
-    function search(string $phrase, array $options){
-        return $this->engine->search($phrase, ['limit' => 100, 'facets' => ['project_title', 'entity', 'form_name']]);
-    }
-    
-    /**
-     * rebuild
-     *
-     * @return void
-     */
-    function rebuild(){
-        $this->engine->getIndex()->rebuild();
-    }
         
     /**
-     * getStats
+     * deleteDocument
      *
-     * @return array
+     * @param  mixed $id
+     * @return void
      */
-    function getStats() : array {
-        return $this->engine->getIndex()->getStats();
+    function deleteDocument(string $id){
+        $this->engine->delete($id);
     }
-    
+
     /**
      * getDocument
      *
@@ -105,6 +86,39 @@ class PhpSearchEngine implements ISearchEngine {
     }
 
     /**
+     * search
+     *
+     * @param  mixed $phrase
+     * @param  mixed $options
+     * @return void
+     */
+    function search(string $phrase, array $options){
+        if (!isset($options)){
+            $options = ['limit' => 250, 'facets' => ['project_title', 'entity', 'form_name']];
+        }
+        return $this->engine->search($phrase, $options);
+    }
+    
+    /**
+     * rebuild
+     *
+     * @return void
+     */
+    function rebuild(){
+        $this->engine->getIndex()->rebuild();
+    }
+    
+       
+    /**
+     * getStats
+     *
+     * @return array
+     */
+    function getStats() : array {
+        return $this->engine->getIndex()->getStats();
+    }
+    
+    /**
      * getConfig
      *
      * @param  SearchEngineSettings $settings
@@ -114,7 +128,7 @@ class PhpSearchEngine implements ISearchEngine {
         $tempFolder = $settings->providerSettings["temp_folder"];
 
         return [
-            "var_dir"       => $tempFolder."marcus-search-engine".DIRECTORY_SEPARATOR,
+            "var_dir"       => $tempFolder.DIRECTORY_SEPARATOR."marcus-search-engine".DIRECTORY_SEPARATOR,
             "index_dir"     => "index",
             "documents_dir" => "documents",
             "cache_dir"     => "cache",

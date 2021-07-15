@@ -71,7 +71,9 @@ class SystemController extends AppController {
     }
 
     function reindex(Request $request, Response $response) : Response { 
-        $searchService      = new SearchEngineService($this->module);
+        $searchService = new SearchEngineService($this->module);
+        $searchService->destroy();
+
         $projectService     = new ProjectService($this->module);
 
         $projects = $projectService->getProjects();
@@ -80,7 +82,10 @@ class SystemController extends AppController {
         $context = $this->createContext("System Reindex", [
             "engine"     => $searchService->getSearchEngineSettings(),
             "projects"   => $projects,
-            "stats"      => $searchService->getStats()
+            "stats"      => $searchService->getStats(),
+            "paths"      => array(
+                "view"  => $this->module->getUrl('index.php')."&action=view"
+            )
         ]);
         $content = $this->template->render("@system/reindex.twig", $context);
 

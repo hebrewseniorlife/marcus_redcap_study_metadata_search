@@ -84,7 +84,7 @@ class SearchEngineService {
     function update(Project $project = null)
     {
         foreach($project->documents as $document){
-            $this->engine->update((array) $document); 
+            $this->engine->updateDocument((array) $document); 
         }
     }
     
@@ -135,13 +135,22 @@ class SearchEngineService {
         }
         return $documents;
     }
-    
+       
     /**
-     * rebuild
+     * destroy
      *
      * @return void
      */
-    function rebuild(){
+    function destroy(){
+        // Get all documents;
+        $results = $this->engine->search("", []);
+
+        // For each of the documents, delete it from the index
+        foreach($results["documents"] as $key => $value){
+            $this->engine->deleteDocument($key);
+        }
+
+        // Rebuild the index, which will clear the cache and index...
         $this->engine->rebuild();
     }
 }

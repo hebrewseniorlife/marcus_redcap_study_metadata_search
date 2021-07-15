@@ -35,6 +35,7 @@
             <tr>
               <th scope="col">Project</th>
               <th scope="col">Status</th>
+              <th scope="col">Deny List</th>
               <th scope="col">Documents</th>
             </tr>
           </thead>
@@ -49,6 +50,7 @@
                     <span class="badge badge-warning badge-pill">disabled</span>
                   {% endif %}              
               </td>
+              <td>{{ project.form_denylist | join(', ') }}</td>
               <td>{{ project.documents | length }}</td>
             </tr>
           {% endfor %}

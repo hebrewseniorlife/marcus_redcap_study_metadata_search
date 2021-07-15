@@ -11,14 +11,22 @@
             Reindex completed successfully using <i>{{ engine.providerName }}</i> engine.  See statistics below.
         </div>
       </div>
-      {# <div class="card-footer">
-        <a class="btn btn-primary" href="{{ paths.search }}" role="button" style="color: white">Test Search</a>
-      </div> #}
     </div>
   </div>
 </div>
 <br/>
 
 {% include 'statistics.twig' %}
+
+<br/>
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-footer">
+        <a class="btn btn-primary" href="{{ paths.view }}" role="button" style="color: white">Engine Summary</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

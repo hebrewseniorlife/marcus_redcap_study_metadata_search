@@ -2,6 +2,7 @@
 
 use Models\Document as Document;
 use Models\Project as Project;
+use Arrayy\Arrayy as Arrayy;
 
 /**
  * ProjectService
@@ -53,43 +54,89 @@ class ProjectService {
     function createProject(int $pid, bool $includChildren = true) : Project{
         $project    = $this->module->getProject($pid);
         $isEnabled  = $this->module->getProjectSetting("index-enabled", $pid);
+        $denyList   = $this->getFormDenyList($pid);
 
         $p = new Project();
-        $p->pid       = $pid;
-        $p->title     = $project->getTitle();
-        $p->enabled   = $isEnabled;
+        $p->project_id      = $pid;
+        $p->title           = $project->getTitle();
+        $p->enabled         = $isEnabled;
+        $p->form_denylist   = $denyList;
 
         if ($includChildren){
-            $p->documents = $this->getProjectDocuments($pid);
+            $p->documents = $this->getProjectDocuments($p);
         }
 
         return $p;
     }
 
-
-    function getProjectDocuments(int $pid) : array {
-        $project    = $this->module->getProject($pid);
-        $metadata   = REDCap::getDataDictionary($pid, "array");
-
+    
+    /**
+     * getProjectDocuments
+     *
+     * @param  Project $project
+     * @return array
+     */
+    function getProjectDocuments(Project $project) : array {
         $documents = [];
+
+        $metadata = REDCap::getDataDictionary($project->project_id, "array");
         foreach($metadata as $field){
-            $document = new Document();
+            $denials = array_filter($project->form_denylist, function ($value) use ($field) {
+                return fnmatch($value, $field["form_name"]);
+            });
 
-            $document->id          = join("__",array($pid, $field["form_name"], $field["field_name"]));
-            $document->entity      = "field";
-            $document->name         = $field["field_name"];
-            $document->label        = $field["field_label"];
-
-            $document->project_id       = $pid;
-            $document->project_title    = $project->getTitle();
-
-            $document->form_name    = $field["form_name"];
-            $document->field_type   = $field["field_type"];
-
-            $document->context = $field;
+            if (count($denials) > 0) continue;
+            
+            $document = $this->createDocument(
+                $project->project_id,
+                $project->title, 
+                $field);
             array_push($documents, $document);
         }
 
         return $documents;
+    }
+    
+    /**
+     * getExcludedForms
+     *
+     * @param  mixed $pid
+     * @return array
+     */
+    function getFormDenyList(int $pid) : array {
+        $wildcardList = [];
+
+        $denylist = $this->module->getProjectSetting("forms-denylist", $pid);
+        if (count($denylist) > 0){
+            $wildcardList = preg_split('/\s*,\s*/', trim($denylist)); 
+        }
+
+        return $wildcardList;
+    }
+    
+    /**
+     * createDocument
+     *
+     * @param  int $pid
+     * @param  mixed $field
+     * @return Document
+     */
+    function createDocument(int $pid, string $title, array $metadata) : Document {
+        $document = new Document();
+
+        $document->id          = join("__",array($pid, $metadata["form_name"], $metadata["field_name"]));
+        $document->entity      = "field";
+        $document->name         = $metadata["field_name"];
+        $document->label        = $metadata["field_label"];
+
+        $document->project_id       = $pid;
+        $document->project_title    = $title;
+
+        $document->form_name    = $metadata["form_name"];
+        $document->field_type   = $metadata["field_type"];
+
+        $document->context = $metadata;
+
+        return $document;
     }
 }

@@ -17,14 +17,14 @@ class Project {
      *
      * @var string
      */
-    public $title;    
+    public $title = "";    
     
     /**
      * enable
      *
      * @var boolean
      */
-    public $enable;
+    public $enable = true;
     
     /**
      * documents
@@ -32,6 +32,13 @@ class Project {
      * @var array
      */
     public $documents = [];
+    
+    /**
+     * form_denylist
+     *
+     * @var array
+     */
+    public $form_denylist = [];
     
     /**
      * getDocument
