@@ -62,6 +62,7 @@ class AppController {
                 ),
                 "module"    => APP_PATH_WEBROOT.'ExternalModules/?prefix='.$_GET["prefix"],
                 "search"    => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)."&action=search",
+                "search_by" => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)."&action=search-by",
                 "api"       => $this->module->getUrl('public.php', $noAuth=false, $useApiEndpoint=true)
             )     
         );

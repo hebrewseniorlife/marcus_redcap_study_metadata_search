@@ -69,14 +69,14 @@ class ProjectController extends AppController {
      */
     function search(Request $request, Response $response) : Response { 
         $term = $request->get("term", "");
-        $result = [];
+        $results = [];
 
         if (strlen($term) > 0){
-            $result = $this->searchEngine->search($term);
+            $results = $this->searchEngine->search($term);
         }
 
         $context = $this->createContext("Search", [
-            "results" => $result,
+            "results" => $results,
             "search" => [
                     "term" => $term
                     , "field" => ""
@@ -103,18 +103,18 @@ class ProjectController extends AppController {
      * @return Response
      */
     function searchBy(Request $request, Response $response) : Response { 
-        $fields = ['form_name', 'field_type', 'project_title'];
+        $fields = ['form_name', 'field_type', 'project_id'];
 
         $field  = $request->get("field", "");
         $value  = $request->get("value", "");  
-        $result = [];
-
-        if (array_search($field, $fields) != false && strlen($value) > 0){
-            $result = $this->searchEngine->searchBy($field, $value);
+        $results = [];
+        
+        if (array_search($field, $fields) >= 0 && strlen($value) > 0){
+            $results = $this->searchEngine->searchBy($field, $value);
         }
 
         $context = $this->createContext("Search", [
-            "results" => $result,
+            "results" => $results,
             "search" => [
                     "term" => ""
                     , "field" => $field

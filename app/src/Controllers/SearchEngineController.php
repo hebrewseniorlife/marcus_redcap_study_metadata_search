@@ -84,14 +84,14 @@ class SearchEngineController extends ApiController{
      * @return Response
      */
     function searchBy(Request $request, Response $response) : Response { 
-        $fields = ['form_name', 'field_type', 'project_title'];
+        $fields = ['form_name', 'field_type', 'project_id'];
 
         $field  = $request->get("field", "");
         $value  = $request->get("value", "");
         $result = [];
-        $mssage = "";
+        $message = "";
 
-        if (array_search($field, $fields) == false) 
+        if (array_search($field, $fields) === false) 
         {
             $message = "Field supplied was invalid. No search performed.";
         }

@@ -1,7 +1,14 @@
 
 <!-- Search Results -->
 <div class="row">
-    <div class="col-md-10"><hr/></div>
+    <div class="col-md-10">
+        <hr/>
+        {% if search.field | length > 0 %} 
+        <div class="mb-2 float-right">
+            <code>Note: Search results on field ({{search.field}}) = {{search.value}}</code>
+        </div>
+        {% endif %}    
+    </div>
 </div>
 
 <div class="row">
@@ -35,9 +42,9 @@
                                         <input class="form-check-input" type="checkbox" name="document[]" id="{{ document.id }}" value="{{ document.id }}">
                                     </div>                    
                                 </td>
-                                <td>{{ document.project_title }} ({{ document.project_id }})</td>
+                                <td><a href="{{paths.search_by | raw}}&field=project_id&value={{ document.project_id }}">{{ document.project_title }} ({{ document.project_id }})</a></td>
                                 <td>{{ document.name }}</td>
-                                <td>{{ document.context.form_name }}</td>
+                                <td><a href="{{paths.search_by | raw}}&field=form_name&value={{ document.context.form_name }}">{{ document.context.form_name }}</a></td>
                                 <td>{{ document.entity }}</td>
                                 <td>{{ document.label }}</td>
                                 <td>{{ document.field_type }}</td>       
