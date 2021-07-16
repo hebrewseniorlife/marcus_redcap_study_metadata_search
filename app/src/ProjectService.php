@@ -80,6 +80,7 @@ class ProjectService {
         $documents = [];
 
         $metadata = REDCap::getDataDictionary($project->project_id, "array");
+
         foreach($metadata as $field){
             $denials = array_filter($project->form_denylist, function ($value) use ($field) {
                 return fnmatch($value, $field["form_name"]);

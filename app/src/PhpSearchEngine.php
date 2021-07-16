@@ -1,6 +1,8 @@
 <?php
 
 use VFou\Search\Engine as Engine;
+use VFou\Search\Query\QuerySegment;
+use VFou\Search\Query\QueryBuilder;
 use VFou\Search\Tokenizers\LowerCaseTokenizer as LowerCaseTokenizer;
 use VFou\Search\Tokenizers\WhiteSpaceTokenizer as WhiteSpaceTokenizer;
 use VFou\Search\Tokenizers\TrimPunctuationTokenizer as TrimPunctuationTokenizer;
@@ -92,11 +94,33 @@ class PhpSearchEngine implements ISearchEngine {
      * @param  mixed $options
      * @return void
      */
-    function search(string $phrase, array $options){
+    function search(string $term, array $options) : array {
         if (!isset($options)){
-            $options = ['limit' => 250, 'facets' => ['project_title', 'entity', 'form_name']];
+            $options = PhpSearchEngine::getDefaultSearchOptions();
         }
-        return $this->engine->search($phrase, $options);
+        return $this->engine->search($term, $options);
+    }
+    
+    /**
+     * searchBy
+     *
+     * @param  mixed $attribute
+     * @param  mixed $value
+     * @return void
+     */
+    function searchBy(string $field, string $value) : array {
+        $segment = QuerySegment::and(QuerySegment::exactSearch($field, $value));
+        $term    = ""; // Open-ended search..
+        $options = PhpSearchEngine::getDefaultSearchOptions();
+
+        $query = new QueryBuilder($term, $segment);
+        $query->setLimit(1000);
+        
+        foreach($options['facets'] as $index => $facet) {
+            $query->addFacet($facet);
+        } 
+        
+        return $this->engine->search($query);
     }
     
     /**
@@ -190,6 +214,18 @@ class PhpSearchEngine implements ISearchEngine {
                 "_indexed" => false,
                 "_filterable" => false
             ]
+        ];
+    }
+    
+    /**
+     * getDefaultSearchOptions
+     *
+     * @return array
+     */
+    static function getDefaultSearchOptions() : array{
+        return [
+            'limit' => 250, 
+            'facets' => ['project_title', 'entity', 'form_name']
         ];
     }
 }

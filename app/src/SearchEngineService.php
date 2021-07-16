@@ -101,6 +101,18 @@ class SearchEngineService {
     }
     
     /**
+     * searchBy
+     *
+     * @param  mixed $attribute
+     * @param  mixed $value
+     * @return array
+     */
+    function searchBy(string $field, string $value) : array
+    {
+        return $this->engine->searchBy($field, $value);
+    }
+    
+    /**
      * getStats
      *
      * @return array

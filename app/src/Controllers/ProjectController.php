@@ -49,10 +49,12 @@ class ProjectController extends AppController {
      */
     function handle(Request $request, Response $response) : Response {
         switch($request->get("action")){
-            case 'search':  
-            case 'view':
+            case 'search-by': 
+                return $this->searchBy($request, $response);
+                break;
+            case 'search':
             default:
-                return $this->view($request, $response);
+                return $this->search($request, $response);
             break;                
         }
     }
@@ -65,17 +67,59 @@ class ProjectController extends AppController {
      * @param  Response $response
      * @return Response
      */
-    function view(Request $request, Response $response) : Response { 
-        $phrase = $request->get("search", "");
+    function search(Request $request, Response $response) : Response { 
+        $term = $request->get("term", "");
         $result = [];
 
-        if (count($phrase) > 0){
-            $result = $this->searchEngine->search($phrase);
+        if (strlen($term) > 0){
+            $result = $this->searchEngine->search($term);
         }
 
         $context = $this->createContext("Search", [
             "results" => $result,
-            "search" => $phrase,
+            "search" => [
+                    "term" => $term
+                    , "field" => ""
+                    , "value" => ""
+            ],
+            "cart" => array (
+                "documents" => $this->cart->getAll()
+            )
+        ]);
+        
+        $content = $this->template->render("@project/view.twig", $context);
+
+        $response->setContent($content);
+        $response->setStatusCode(Response::HTTP_OK);        
+                
+        return $response;
+    }
+
+    /**
+     * view
+     *
+     * @param  Request $request
+     * @param  Response $response
+     * @return Response
+     */
+    function searchBy(Request $request, Response $response) : Response { 
+        $fields = ['form_name', 'field_type', 'project_title'];
+
+        $field  = $request->get("field", "");
+        $value  = $request->get("value", "");  
+        $result = [];
+
+        if (array_search($field, $fields) != false && strlen($value) > 0){
+            $result = $this->searchEngine->searchBy($field, $value);
+        }
+
+        $context = $this->createContext("Search", [
+            "results" => $result,
+            "search" => [
+                    "term" => ""
+                    , "field" => $field
+                    , "value" => $value
+            ],
             "cart" => array (
                 "documents" => $this->cart->getAll()
             )

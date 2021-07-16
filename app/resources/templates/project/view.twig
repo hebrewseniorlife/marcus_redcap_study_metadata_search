@@ -2,7 +2,12 @@
 
 {% block body %}
 
-{% include 'search.twig' %}
+{% include 'search-form.twig' %}
+
+{% if results != null %}
+{% include 'search-results.twig' %}
+{% endif %}
+
 {% include 'cart.twig' %}
 
 {% endblock %}

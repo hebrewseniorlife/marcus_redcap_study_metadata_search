@@ -13,8 +13,9 @@ interface ISearchEngine
     
     public function rebuild();
     public function getStats() : array;
-    public function search(string $phrase, array $options);
-
+    public function search(string $term, array $options) : array;
+    public function searchBy(string $field, string $value) : array;
+    
     public static function getSchema(SearchEngineSettings $settings);
     public static function getConfig(SearchEngineSettings $settings);
 
