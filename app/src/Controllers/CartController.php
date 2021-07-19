@@ -9,6 +9,7 @@ use SearchEngineService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
+use Symfony\Component\HttpFoundation\HeaderUtils as HeaderUtils;
 
 class CartController extends ApiController{    
     /**
@@ -142,26 +143,38 @@ class CartController extends ApiController{
         $searchEngine   = new SearchEngineService($this->module);
         $documents      = $searchEngine->getDocuments($this->cart->getAll());
 
+        $exportDate     = date("Ymd");
+
         $format = $request->get("format");
         switch($format){
             case 'csv':
-                $contentType = 'text/csv';
+                $contentType    = 'text/csv';
                 $content        = DocumentHelper::writeToCsv($documents);
+                $filename       = 'study_metdata_cart_'.$exportDate.'.csv';
                 break;
             case 'json':
                 $contentType    = 'application/json';
                 $content        = json_encode($documents);
+                $filename       = 'study_metdata_cart_'.$exportDate.'.json';
                 break;
             case 'metadata':
             default:
                 $contentType    = 'text/csv';
                 $content        = DocumentHelper::writeMetadataToCsv($documents);
+                $filename       = 'data_dictionary_'.$exportDate.'.csv';
                 break;
         }
         
         // Prepar the response and return it to the caller...
         $response->setContent($content);
         $response->headers->set('Content-Type', $contentType);
+        
+        $disposition = HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_ATTACHMENT,
+            $filename
+        );
+        $response->headers->set('Content-Disposition', $disposition);
+
         $response->setStatusCode(Response::HTTP_OK);
 
         return $response;  
