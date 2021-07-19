@@ -21,6 +21,10 @@ switch($entity){
         $controller = new Controllers\SearchEngineController($module);
         $response = $controller->handle($request, $response);
         break;        
+    case 'project':
+        $controller = new Controllers\ProjectController($module);
+        $response = $controller->handle($request, $response);
+        break;                
     default:
         $response->setContent("Unsupported API action. Please try again.");
         $response->setStatusCode(Response::HTTP_BAD_REQUEST);

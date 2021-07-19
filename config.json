@@ -121,7 +121,15 @@
 		}
 	],
 
-	"crons": [],
+	"crons": [      
+		{
+			"cron_name": "index_rebuild",
+			"cron_description": "Routine to rebuild the search engine index each week",
+			"method": "rebuild_search_engine_index",
+			"cron_frequency": "604800",
+			"cron_max_run_time": "86400"
+	 	}
+	],
 
 	"compatibility": {
 		"php-version-min": "7.2.0",

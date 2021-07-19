@@ -4,9 +4,11 @@ namespace Controllers;
 
 use SearchEngineService;
 use CartService;
+use ProjectService;
 use Controllers\AppController;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
+use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
 
 /**
  * ProjectController
@@ -25,7 +27,7 @@ class ProjectController extends AppController {
      * @var SearchEngineService
      */
     protected $searchEngine;
-    
+
     /**
      * __construct
      *
@@ -49,6 +51,9 @@ class ProjectController extends AppController {
      */
     function handle(Request $request, Response $response) : Response {
         switch($request->get("action")){
+            case 'list-sources':
+                return $this->listSources($request, $response);
+                break;
             case 'search-by': 
                 return $this->searchBy($request, $response);
                 break;
@@ -131,5 +136,36 @@ class ProjectController extends AppController {
         $response->setStatusCode(Response::HTTP_OK);        
                 
         return $response;
+    }
+
+    /**
+     * listSources
+     *
+     * @param  mixed $request
+     * @param  mixed $response
+     * @return Response
+     */
+    function listSources(Request $request, Response $response) : Response {
+        $projectService   = new ProjectService($this->module);
+        $projects         = $projectService->getProjects();
+
+        $indexedProjects = [];
+        foreach($projects as $project)
+        {
+            if ($project->enabled === true)
+            {
+                array_push($indexedProjects, [
+                    "title" => $project->title,
+                    "document_count" => count($project->documents),
+                    "leads" => [
+                        "pi" => [ "name" => "N/A", "email" => "" ]
+                    ]
+                ]);
+            }
+        }
+
+        return new JsonResponse([
+            "message" => "",
+            "sources" => $indexedProjects]);  
     }
 }
