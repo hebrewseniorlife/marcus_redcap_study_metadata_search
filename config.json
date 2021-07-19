@@ -108,13 +108,13 @@
 				{
 				   "key": "api-key",
 				   "name": "Unique API Key (used in URL)",
-				   "required": true,
+				   "required": false,
 				   "type": "text"
 				},
 				{
 				   "key": "api-name",
 				   "name": "Common name or reference",
-				   "required": true,
+				   "required": false,
 				   "type": "text"
 				}
 			]
