@@ -53,7 +53,7 @@ class ProjectService {
      */
     function createProject(int $pid, bool $includChildren = true) : Project{
         $project    = $this->module->getProject($pid);
-        $isEnabled  = $this->module->getProjectSetting("index-enabled", $pid);
+        $isEnabled  = filter_var($this->module->getProjectSetting("index-enabled", $pid), FILTER_VALIDATE_BOOLEAN);
         $denyList   = $this->getFormDenyList($pid);
 
         $p = new Project();
@@ -62,7 +62,7 @@ class ProjectService {
         $p->enabled         = $isEnabled;
         $p->form_denylist   = $denyList;
 
-        if ($includChildren){
+        if ($includChildren && $isEnabled){
             $p->documents = $this->getProjectDocuments($p);
         }
 

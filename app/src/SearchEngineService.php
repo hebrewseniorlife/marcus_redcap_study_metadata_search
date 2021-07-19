@@ -70,8 +70,12 @@ class SearchEngineService {
     {
         $this->engine->rebuild();
         
-        foreach($projects as $project){
-            $this->update($project);
+        foreach($projects as $project)
+        {
+            if ($project->enabled === true)
+            {
+                $this->update($project);
+            }
         }
     }
     
@@ -83,7 +87,12 @@ class SearchEngineService {
      */
     function update(Project $project = null)
     {
-        foreach($project->documents as $document){
+        if ($project->enabled !== true){
+            throw new Exception("Project is not enabled and may not be indexed.");
+        }
+
+        foreach($project->documents as $document)
+        {
             $this->engine->updateDocument((array) $document); 
         }
     }

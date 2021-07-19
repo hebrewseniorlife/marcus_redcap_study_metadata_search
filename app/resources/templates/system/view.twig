@@ -51,7 +51,7 @@
                   {% endif %}              
               </td>
               <td>{{ project.form_denylist | join(', ') }}</td>
-              <td>{{ project.documents | length }}</td>
+              <td>{% if project.enabled %}{{ project.documents | length }}{% else %}(N/A){% endif %}</td>
             </tr>
           {% endfor %}
           </tbody>
