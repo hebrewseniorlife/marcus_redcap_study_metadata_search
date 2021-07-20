@@ -8,23 +8,11 @@ use Symfony\Component\HttpFoundation\Response as Response;
 $request  = Request::createFromGlobals();
 $response = new Response();
 
-$pid        = $request->query->getInt("pid", -1);
-$isProject  = (isset($pid) && $pid > 0);
+// $pid        = $request->query->getInt("pid", -1);
+// $isProject  = (isset($pid) && $pid > 0);
 $entity     = $request->query->get("entity", "");
 
-switch($entity){
-    case 'cart':
-        $controller = new Controllers\CartController($module);
-        $response = $controller->handle($request, $response);
-        break;        
-    case 'engine':
-        $controller = new Controllers\SearchEngineController($module);
-        $response = $controller->handle($request, $response);
-        break;        
-    case 'project':
-        $controller = new Controllers\ProjectController($module);
-        $response = $controller->handle($request, $response);
-        break;                
+switch($entity){             
     default:
         $response->setContent("Unsupported API action. Please try again.");
         $response->setStatusCode(Response::HTTP_BAD_REQUEST);
