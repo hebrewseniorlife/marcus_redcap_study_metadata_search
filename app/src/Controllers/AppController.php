@@ -13,6 +13,7 @@ class AppController {
     protected $module;
     protected $template;
 
+    const REDCAP_SCOPE_HEADER = 'REDCap-Scope';
     /**
      * __construct
      *
@@ -23,9 +24,9 @@ class AppController {
     {
         $this->module = $module;
         $this->template = new TemplateEngine([
-            'root'      => $module->getModulePath()."app/resources/templates/",
-            'system'    => $module->getModulePath()."app/resources/templates/system",
-            'project'   => $module->getModulePath()."app/resources/templates/project"
+            'root'              => $module->getModulePath()."app/resources/templates/",
+            'control-center'    => $module->getModulePath()."app/resources/templates/control-center",
+            'project'           => $module->getModulePath()."app/resources/templates/project"
         ]);        
     }
     
@@ -61,12 +62,12 @@ class AppController {
                         "scripts"   => $this->module->getUrl('public/scripts')
                 ),
                 "module"    => APP_PATH_WEBROOT.'ExternalModules/?prefix='.$_GET["prefix"],
-                "search"    => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)."&action=search",
-                "search_by" => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)."&action=search-by",
-                "api"       => $this->module->getUrl('public.php', $noAuth=false, $useApiEndpoint=true)
+                "search"    => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)."&entity=project&action=search",
+                "search_by" => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)."&entity=project&action=search-by",
+                "api"       => $this->module->getUrl('index.php', $noAuth=false, $useApiEndpoint=true)
             )     
         );
 
-        return array_merge($context, $additional);
+        return array_merge_recursive($context, $additional);
     }
 }

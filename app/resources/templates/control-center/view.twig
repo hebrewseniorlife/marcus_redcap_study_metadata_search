@@ -70,7 +70,7 @@
 </div>
 <br/>
 {% include 'statistics.twig' %}
-{# </br>
+</br>
 <div class="row">
   <div class="col-md-12">
     <div class="card">
@@ -80,13 +80,20 @@
           <tbody>          
             <tr>
               <th>Authenticated Search</th>
-              <td><a href="{{ paths.search }}">{{ paths.search }}</a></td>
+              <td>
+                  <p>{{ paths.search|split("?")|join("\n")|u.wordwrap(25, "\n", true) }}</p>
+                  <p>* The URL above may be used to create a <i>Custom Application Link</i> at the system or project level.</p>
+              </td>
+              <td>
+                    <button type="button" class="btn btn-outline-secondary btn-sm clipboard" 
+                                data-clipboard-text="{{paths.search}}">Copy</button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
-</div> #}
+</div>
 
 {% endblock %}

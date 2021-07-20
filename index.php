@@ -8,34 +8,47 @@ use Symfony\Component\HttpFoundation\Response as Response;
 $request  = Request::createFromGlobals();
 $response = new Response();
 
-$pid        = $request->query->getInt("pid", -1);
-$isProject  = (isset($pid) && $pid > 0);
+$entity = $request->get("entity", "");
 
-if ($isProject){
-    $controller = new Controllers\ProjectController($module);
-    $response = $controller->handle($request, $response);
+switch($entity){
+    case 'cart':
+        $controller = new Controllers\CartController($module);
+        $response = $controller->handle($request, $response);
+        break;        
+    case 'engine':
+        $controller = new Controllers\SearchEngineController($module);
+        $response = $controller->handle($request, $response);
+        break;    
+    case 'control-center':
+        $controller = new Controllers\ControlCenterController($module);
+        $response = $controller->handle($request, $response);
+        break;               
+    case 'project':
+        $controller = new Controllers\ProjectController($module);
+        $response = $controller->handle($request, $response);
+        break;                
+    default:
+        $response->setContent("Unsupported API action. Please try again.");
+        $response->setStatusCode(Response::HTTP_BAD_REQUEST);
+        break;
 }
-else{
-    $controller = new Controllers\SystemController($module);
-    $response = $controller->handle($request, $response);
-}
 
-$chromeless = $request->query->getBoolean("chromeless", false);
-
-if (!$chromeless){
-    if ($isProject){
+$scope = $response->headers->get(Controllers\AppController::REDCAP_SCOPE_HEADER);
+switch($scope)
+{
+    case 'project':
         require_once APP_PATH_DOCROOT . 'ProjectGeneral/header.php';
         echo $response->getContent();
-        require_once APP_PATH_DOCROOT . 'ProjectGeneral/footer.php';
-    }
-    else{
+        require_once APP_PATH_DOCROOT . 'ProjectGeneral/footer.php';        
+        break;
+    case 'control-center':
         require_once APP_PATH_DOCROOT . 'ControlCenter/header.php';
         echo $response->getContent();
         require_once APP_PATH_DOCROOT . 'ControlCenter/footer.php';
-    }
-}
-else{
-    $response->prepare($request);
-    $response->send();
+        break;
+    default:
+        $response->prepare($request);
+        $response->send();
+        break;
 }
 

@@ -94,8 +94,11 @@ class ProjectController extends AppController {
         
         $content = $this->template->render("@project/view.twig", $context);
 
-        $response->setContent($content);
-        $response->setStatusCode(Response::HTTP_OK);        
+        $response = new Response(
+            $content,
+            Response::HTTP_OK,
+            [self::REDCAP_SCOPE_HEADER => 'project']
+        );     
                 
         return $response;
     }
@@ -132,8 +135,11 @@ class ProjectController extends AppController {
         
         $content = $this->template->render("@project/view.twig", $context);
 
-        $response->setContent($content);
-        $response->setStatusCode(Response::HTTP_OK);        
+        $response = new Response(
+            $content,
+            Response::HTTP_OK,
+            [self::REDCAP_SCOPE_HEADER => 'project']
+        );        
                 
         return $response;
     }

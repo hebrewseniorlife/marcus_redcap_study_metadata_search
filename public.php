@@ -10,7 +10,7 @@ $response = new Response();
 
 $pid        = $request->query->getInt("pid", -1);
 $isProject  = (isset($pid) && $pid > 0);
-$entity     = $request->query->get("entity", "cart");
+$entity     = $request->query->get("entity", "");
 
 switch($entity){
     case 'cart':

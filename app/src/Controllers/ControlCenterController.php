@@ -9,9 +9,9 @@ use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 
 /**
- * SystemController
+ * ControlCenterController
  */
-class SystemController extends AppController {    
+class ControlCenterController extends AppController {    
     /**
      * __construct
      *
@@ -59,13 +59,17 @@ class SystemController extends AppController {
             "projects"   => $projects,
             "stats"      => $searchService->getStats(),
             "paths"      => array(
-                "reindex"  => $this->module->getUrl('index.php')."&action=reindex"
+                "reindex"  => $this->module->getUrl('index.php')."&entity=control-center&action=reindex"
             )
         ]);
-        $content = $this->template->render("@system/view.twig", $context);
+        
+        $content = $this->template->render("@control-center/view.twig", $context);
 
-        $response->setContent($content);
-        $response->setStatusCode(Response::HTTP_OK);
+        $response = new Response(
+            $content,
+            Response::HTTP_OK,
+            [self::REDCAP_SCOPE_HEADER => 'control-center']
+        );
 
         return $response;
     }
@@ -84,13 +88,16 @@ class SystemController extends AppController {
             "projects"   => $projects,
             "stats"      => $searchService->getStats(),
             "paths"      => array(
-                "view"  => $this->module->getUrl('index.php')."&action=view"
+                "view"  => $this->module->getUrl('index.php')."&entity=control-center&action=view"
             )
         ]);
-        $content = $this->template->render("@system/reindex.twig", $context);
+        $content = $this->template->render("@control-center/reindex.twig", $context);
 
-        $response->setContent($content);
-        $response->setStatusCode(Response::HTTP_OK);
+        $response = new Response(
+            $content,
+            Response::HTTP_OK,
+            [self::REDCAP_SCOPE_HEADER => 'control-center']
+        );
 
         return $response;
 
