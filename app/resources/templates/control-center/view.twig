@@ -1,29 +1,7 @@
 {% extends "base.twig" %}
 
 {% block body %}
-
-<div class="row">
-  <div class="col-md-12">
-
-    <div class="card">
-      <h5 class="card-header">Engine Settings</h5>
-      <div class="card-body">
-        <table class="table">
-          <tr>
-            <th>Provider:</th>
-            <td>{{ engine.providerName }}</td>
-          </tr>
-          {% for key, setting in engine.providerSettings %}
-            <tr>
-              <th>{{ key }}:</th>
-              <td>{{ setting }}</td>
-            </tr>   
-          {% endfor %}
-        </table>
-      </div>
-    </div>
-  </div>      
-</div>
+{% include 'settings.twig' %}
 <br/>
 <div class="row">
   <div class="col-md-12">

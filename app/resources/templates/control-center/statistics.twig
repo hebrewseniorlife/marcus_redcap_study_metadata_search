@@ -8,8 +8,22 @@
           <tbody>          
           {% for prop, value in stats %}
             <tr>
-              <th>{{ prop }}</th>
-              <td>{{ value }}</td>
+              <th width="50">{{ prop }}</th>
+              <td>
+              {% if value is iterable %}
+              <div id="{{prop}}-accordion">
+                <div class="card">
+                  <a class="btn text-left" data-toggle="collapse" data-target="#{{prop}}-collapse" aria-expanded="true" aria-controls="{{prop}}-collapse">
+                        ...
+                      </a>
+                  <div id="{{prop}}-collapse" class="collapse collapsed" aria-labelledby="headingOne" data-parent="#{{prop}}-accordion">
+                    <div class="card-body">
+                      <code><pre>{{ value | json_encode(constant('JSON_PRETTY_PRINT')) | escape }}</pre></code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% else %}{{ value }}{% endif %}</td>
             </tr>
           {% endfor %}
           </tbody>

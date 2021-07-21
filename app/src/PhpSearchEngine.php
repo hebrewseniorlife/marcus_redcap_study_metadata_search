@@ -32,7 +32,8 @@ class PhpSearchEngine implements ISearchEngine {
         $configuration = [
             "config"    => PhPSearchEngine::getConfig($settings),
             "schemas"   => [
-                "document" => PhpSearchEngine::getSchema($settings)
+                "document" => PhpSearchEngine::getSchema($settings),
+                "example-post" => null
             ],
             "types" => [
                 "_default" => [
