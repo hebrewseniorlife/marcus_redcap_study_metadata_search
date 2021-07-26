@@ -3,14 +3,8 @@
 /**
  * CartService
  */
-class CartService {  
-    /**
-     * module
-     *
-     * @var mixed
-     */
-    protected $module;
-    
+class CartService extends AbstractService {  
+   
     /**
      * sessionKey
      *
@@ -24,11 +18,11 @@ class CartService {
      * @param  mixed $module
      * @return void
      */
-    function __construct($module)
+    function __construct($module, $logger = null)
     {
-        $this->module       = $module;
-        $this->sessionKey   = $module->getPrefix();
+        parent::__construct($module, $logger);
 
+        $this->sessionKey = $module->getPrefix();
         if (!isset($_SESSION[$this->sessionKey]))
         {
             $_SESSION[$this->sessionKey] = [];

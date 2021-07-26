@@ -1,5 +1,7 @@
 <?php
 
+namespace Logging;
+
 use Monolog\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
 

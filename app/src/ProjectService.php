@@ -7,26 +7,7 @@ use Arrayy\Arrayy as Arrayy;
 /**
  * ProjectService
  */
-class ProjectService {        
-    /**
-     * module
-     *
-     * @var mixed
-     */
-    protected $module;
-    
-    /**
-     * __construct
-     *
-     * @param  mixed $module
-     * @return void
-     */
-    function __construct($module)
-    {
-        $this->module = $module;
-    }
-    
-
+class ProjectService extends AbstractService {          
     /**
      * getProjects
      *

@@ -5,13 +5,7 @@ use SeachEngineFactory as SeachEngineFactory;
 use ISearchEngine;
 use Models\Project;
 
-class SearchEngineService {    
-    /**
-     * module
-     *
-     * @var mixed
-     */
-    protected $module;    
+class SearchEngineService extends AbstractService {       
     /**
      * engine
      *
@@ -25,9 +19,10 @@ class SearchEngineService {
      * @param  mixed $module
      * @return void
      */
-    function __construct($module)
+    function __construct($module, $logger = null)
     {
-        $this->module = $module;
+        parent::__construct($module, $logger);
+        
         $this->engine = SeachEngineFactory::create($this->getSearchEngineSettings());
     }
     
