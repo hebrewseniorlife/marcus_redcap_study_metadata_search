@@ -4,6 +4,7 @@ namespace Logging;
 
 use Monolog\Logger as Logger;
 use Monolog\Handler\StreamHandler as StreamHandler;
+use Monolog\Handler\BufferHandler as BufferHandler;
 use Monolog\Formatter\LineFormatter as LineFormatter;
 
 class Log {    
@@ -23,26 +24,39 @@ class Log {
 	/**
 	 * getLogger
 	 *
+	 * @param  mixed $useBuffer
 	 * @return Logger
 	 */
-	static public function getLogger() : Logger
+	static public function getLogger(bool $useBuffer = true) : Logger
 	{
 		if (!self::$instance) {
-			self::createInstance();
+			self::createInstance($useBuffer);
         }
 
 		return self::$instance;
 	}
-
-    protected static function createInstance()
+    
+    /**
+     * createInstance
+     *
+     * @param  mixed $useBuffer
+     * @return void
+     */
+    protected static function createInstance(bool $useBuffer = true)
     {
         $formatter = new LineFormatter(Log::DEFAULT_FORMAT, Log::DATETIME_FOMAT);
         $formatter->ignoreEmptyContextAndExtra(true);
         $formatter->allowInlineLineBreaks(true);
 
-        $handler = new StreamHandler(Log::DEFAULT_STREAM, Log::DEFAULT_LEVEL);
-        $handler->setFormatter($formatter);
+        $stream = new StreamHandler(Log::DEFAULT_STREAM, Log::DEFAULT_LEVEL);
+        $stream->setFormatter($formatter);
 
+        $handler = $stream;
+        if ($useBuffer === true)
+        {
+            $handler = new BufferHandler($stream, Logger::DEBUG);
+        }
+        
         $logger = new Logger(Log::DEFAULT_CHANNEL);
         $logger->pushHandler($handler);
        

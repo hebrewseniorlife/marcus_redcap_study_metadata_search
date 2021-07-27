@@ -1,11 +1,11 @@
 <?php
 
 use Models\SearchEngineSettings;
+use Psr\Log\LoggerInterface;
 
 interface ISearchEngine
 {
-    // public function initialize(mixed $config);
-    // public function validate(SearchEngineSettings $config);
+    public function initialize(SearchEngineSettings $settings, LoggerInterface $logger);
 
     public function updateDocument(array $document);
     public function deleteDocument(string $id);
@@ -18,5 +18,4 @@ interface ISearchEngine
     
     public static function getSchema(SearchEngineSettings $settings);
     public static function getConfig(SearchEngineSettings $settings);
-
 }

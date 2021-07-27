@@ -4,6 +4,7 @@ use Models\SearchEngineSettings as SearchEngineSettings;
 use SeachEngineFactory as SeachEngineFactory;
 use ISearchEngine;
 use Models\Project;
+use Psr\Log\LoggerInterface;
 
 class SearchEngineService extends AbstractService {       
     /**
@@ -19,11 +20,11 @@ class SearchEngineService extends AbstractService {
      * @param  mixed $module
      * @return void
      */
-    function __construct($module, $logger = null)
+    function __construct($module, LoggerInterface $logger)
     {
         parent::__construct($module, $logger);
         
-        $this->engine = SeachEngineFactory::create($this->getSearchEngineSettings());
+        $this->engine = self::createSearchEngine($this->getSearchEngineSettings(), $this->logger);
     }
     
     /**
@@ -63,6 +64,7 @@ class SearchEngineService extends AbstractService {
      */
     function updateAll(array $projects = [])
     {
+        $this->logger->warning("Updating all projects (n={count($projects)}). Rebuilding search engine index.");
         $this->engine->rebuild();
         
         foreach($projects as $project)
@@ -161,12 +163,40 @@ class SearchEngineService extends AbstractService {
         // Get all documents;
         $results = $this->engine->search("", []);
 
+        $documentCount = count($results["documents"]);
+        $this->logger->warning("Destroying search engine containing $documentCount.");
+
         // For each of the documents, delete it from the index
         foreach($results["documents"] as $key => $value){
             $this->engine->deleteDocument($key);
         }
 
         // Rebuild the index, which will clear the cache and index...
+        $this->logger->warning("Rebuilding search engine.");
         $this->engine->rebuild();
+    }
+
+    /**
+     * create
+     *
+     * @param  SearchEngineSettings $config
+     * @return ISearchEngine
+     */
+    static public function createSearchEngine(SearchEngineSettings $settings, LoggerInterface $logger) : ISearchEngine {
+        $provider = $settings->providerName;
+        
+        $logger->debug("Creating search engine using provider named: {$provider}.");
+
+        switch($provider){
+            case "PhpSearchEngine":
+                $searchEngine = new PhpSearchEngine();
+                break;
+            default:
+                throw new Exception("Search engine with provider name '{$provider}' is not supported.");
+        }
+        
+        $searchEngine->initialize($settings, $logger);
+        
+        return $searchEngine;
     }
 }

@@ -12,6 +12,7 @@ use TemplateEngine as TemplateEngine;
 class AppController {   
     protected $module;
     protected $template;
+    protected $logger;
 
     const REDCAP_SCOPE_HEADER = 'REDCap-Scope';
     /**
@@ -27,7 +28,8 @@ class AppController {
             'root'              => $module->getModulePath()."app/resources/templates/",
             'control-center'    => $module->getModulePath()."app/resources/templates/control-center",
             'project'           => $module->getModulePath()."app/resources/templates/project"
-        ]);        
+        ]);    
+        $this->logger = \Logging\Log::getLogger();    
     }
     
     /**

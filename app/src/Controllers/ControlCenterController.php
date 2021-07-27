@@ -2,7 +2,6 @@
 
 namespace Controllers;
 
-use Models\SearchEngineSettings;
 use ProjectService;
 use SearchEngineService;
 use Symfony\Component\HttpFoundation\Request as Request;
@@ -50,8 +49,8 @@ class ControlCenterController extends AppController {
      * @return Response
      */
     function view(Request $request, Response $response) : Response { 
-        $searchService    = new SearchEngineService($this->module);
-        $projectService   = new ProjectService($this->module);
+        $searchService    = new SearchEngineService($this->module, $this->logger);
+        $projectService   = new ProjectService($this->module, $this->logger);
         $projects         = $projectService->getProjects();
 
         $context = $this->createContext("System View", [
@@ -75,10 +74,10 @@ class ControlCenterController extends AppController {
     }
 
     function reindex(Request $request, Response $response) : Response { 
-        $searchService = new SearchEngineService($this->module);
+        $searchService = new SearchEngineService($this->module, $this->logger);
         $searchService->destroy();
 
-        $projectService     = new ProjectService($this->module);
+        $projectService = new ProjectService($this->module, $this->logger);
 
         $projects = $projectService->getProjects();
         $searchService->updateAll($projects);

@@ -4,9 +4,13 @@ namespace Logging;
 
 use Monolog\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\Formatter\LineFormatter;
 
 class ExternalModuleLogHandler extends AbstractProcessingHandler
 {    
+    const DEFAULT_LEVEL  = Logger::DEBUG;
+    const DEFAULT_FORMAT = '%message%';
+
     /**
      * module
      *
@@ -19,6 +23,13 @@ class ExternalModuleLogHandler extends AbstractProcessingHandler
         parent::__construct($level, $bubble);
 
         $this->module = $module;
+
+        // Create a default formatter...
+        $formatter = new LineFormatter(ExternalModuleLogHandler::DEFAULT_FORMAT);
+        $formatter->ignoreEmptyContextAndExtra(true);
+        $formatter->allowInlineLineBreaks(true);
+
+        $this->setFormatter($formatter);
     }
 
     protected function write(array $record): void

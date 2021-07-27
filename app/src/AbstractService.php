@@ -2,6 +2,7 @@
 
 use Psr\Log\LoggerInterface;
 use Logging\Log;
+use Logging\ExternalModuleLogHandler;
 
 abstract class AbstractService
 {
@@ -29,13 +30,14 @@ abstract class AbstractService
     function __construct($module, LoggerInterface $logger = null)
     {
         $this->module = $module;
+        
+        if ($logger === null)
+        {
+            $logger = Log::getLogger();
+            $logger->pushHandler(new ExternalModuleLogHandler($module));
+        }
 
-        if (is_a($logger, 'Psr\Log\LoggerInterface')){
-            $this->logger = $logger;
-        }
-        else{
-            $this->logger = Log::getLogger();
-        }
+        $this->setLogger($logger);
     }
     
     /**
@@ -44,7 +46,27 @@ abstract class AbstractService
      * @param  mixed $logger
      * @return LoggerInterface
      */
-    function setLogger(LoggerInterface $logger) : LoggerInterface {
-        return $this->logger = $logger;
+    function setLogger(LoggerInterface $logger = null) : LoggerInterface 
+    {
+        if (is_a($logger, 'Psr\Log\LoggerInterface'))
+        {
+            $this->logger = $logger;
+        }
+        else
+        {
+            throw new Exception('Logger may not be null and must support the Psr log interface.');
+        }
+        
+        return $this->logger;
+    }
+    
+    /**
+     * getLogger
+     *
+     * @return LoggerInterface
+     */
+    function getLogger() : LoggerInterface 
+    {
+        return $this->logger;
     }
 }

@@ -9,7 +9,7 @@ use VFou\Search\Tokenizers\TrimPunctuationTokenizer as TrimPunctuationTokenizer;
 use VFou\Search\Tokenizers\WordSeparatorTokenizer as WordSeparatorTokenizer;
 use VFou\Search\Tokenizers\IntegerSeparatorTokenizer as IntegerSeparatorTokenizer;
 
-
+use Psr\Log\LoggerInterface;
 use Models\SearchEngineSettings as SearchEngineSettings;
 use ISearchEngine as ISearchEngine;
 
@@ -17,17 +17,25 @@ class PhpSearchEngine implements ISearchEngine {
     /**
      * Engine
      *
-     * @var mixed
+     * @var Engine
      */
     protected $engine;
     
     /**
-     * __construct
+     * logger
+     *
+     * @var LoggerInterface
+     */
+    protected $logger;
+           
+    /**
+     * initialize
      *
      * @param  SearchEngineSettings $settings
-     * @return PhpSearchEngine
+     * @param  LoggerInterface $logger
+     * @return void
      */
-    function __construct(SearchEngineSettings $settings)
+    public function initialize(SearchEngineSettings $settings, LoggerInterface $logger)
     {
         $configuration = [
             "config"    => PhPSearchEngine::getConfig($settings),
@@ -54,8 +62,9 @@ class PhpSearchEngine implements ISearchEngine {
         ];
 
         $this->engine = new Engine($configuration);
-    }
-    
+        $this->logger = (isset($logger)) ? $logger : \Logging\Log::getLogger();
+    } 
+
     /**
      * updateDocument
      *

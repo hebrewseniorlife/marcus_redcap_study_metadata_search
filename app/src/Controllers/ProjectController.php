@@ -38,8 +38,8 @@ class ProjectController extends AppController {
     {
         parent::__construct($module);
         
-        $this->cart         = new CartService($this->module);
-        $this->searchEngine = new SearchEngineService($this->module);
+        $this->cart         = new CartService($this->module, $this->logger);
+        $this->searchEngine = new SearchEngineService($this->module, $this->logger);
     }
 
     /**
@@ -152,7 +152,7 @@ class ProjectController extends AppController {
      * @return Response
      */
     function listSources(Request $request, Response $response) : Response {
-        $projectService   = new ProjectService($this->module);
+        $projectService   = new ProjectService($this->module, $this->logger);
         $projects         = $projectService->getProjects();
 
         $indexedProjects = [];

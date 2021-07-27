@@ -27,7 +27,7 @@ class SearchEngineController extends ApiController{
     {
         parent::__construct($module);
 
-        $this->searchEngine = new SearchEngineService($module);
+        $this->searchEngine = new SearchEngineService($this->module, $this->logger);
     }
 
     /**

@@ -29,7 +29,7 @@ class CartController extends ApiController{
     {
         parent::__construct($module);
 
-        $this->cart = new CartService($module);
+        $this->cart = new CartService($this->module, $this->logger);
     }
 
     /**
@@ -105,7 +105,7 @@ class CartController extends ApiController{
      * @return Response
      */
     function getAll(Request $request, Response $response) : Response {
-        $searchEngine = new SearchEngineService($this->module);
+        $searchEngine = new SearchEngineService($this->module, $this->logger);
         $documents = $searchEngine->getDocuments($this->cart->getAll());
 
         $documents = array_map('DocumentHelper::flatten', $documents);
@@ -140,7 +140,7 @@ class CartController extends ApiController{
      * @return Response
      */
     function export(Request $request, Response $response) : Response {       
-        $searchEngine   = new SearchEngineService($this->module);
+        $searchEngine   = new SearchEngineService($this->module, $this->logger);
         $documents      = $searchEngine->getDocuments($this->cart->getAll());
 
         $exportDate     = date("Ymd");
