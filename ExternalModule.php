@@ -34,15 +34,30 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	 */
 	public function rebuild_search_engine_index($cron) 
 	{
-		$searchService = new SearchEngineService($this);
-        $searchService->destroy();
+		require_once(__DIR__."/app/bootstrap.php");
 
-        $projectService = new ProjectService($this);
-        $projects = $projectService->getProjects();
+		$message = "";
 
-        $searchService->updateAll($projects);
+		try 
+		{		
+			$logger = \Logging\Log::getLogger(false);
 
-		return "The {$cron['cron_name']} cron job completed successfully.";
+			$searchService = new SearchEngineService($this, $logger);
+			$searchService->destroy();
+	
+			$projectService = new ProjectService($this, $logger);
+			$projects = $projectService->getProjects();
+	
+			$searchService->updateAll($projects);
+
+			$message = "The {$cron['cron_name']} cron job service completed.";
+
+		}
+		catch (\Exception $e) {
+			$message = "The {$cron['cron_name']} cron job service failed: ".$e->getMessage();
+		}
+		
+		return $message;
 	}
 
 	/**

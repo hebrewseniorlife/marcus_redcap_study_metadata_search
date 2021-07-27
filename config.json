@@ -123,7 +123,7 @@
 
 	"crons": [      
 		{
-			"cron_name": "index_rebuild",
+			"cron_name": "marcus_redcap_study_metadata_search_rebuild",
 			"cron_description": "Routine to rebuild the search engine index each week",
 			"method": "rebuild_search_engine_index",
 			"cron_frequency": "604800",
