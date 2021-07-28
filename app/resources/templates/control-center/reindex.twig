@@ -8,8 +8,11 @@
       <h5 class="card-header">Reindex</h5>
       <div class="card-body">
         <div class="bs-callout bs-callout-success">
-            Reindex completed successfully using <i>{{ engine.providerName }}</i> engine.  See statistics below.
+            Reindex completed successfully using <i>{{ engine.providerName }}</i> engine.  See statistics and log below.
         </div>
+        <div>
+            <code><pre>{{log}}</pre></code>
+        </div>        
       </div>
     </div>
   </div>

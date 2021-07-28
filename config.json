@@ -99,6 +99,33 @@
 			]
 		},
 		{
+			"key": "cron-enabled",
+			"name": "Automatic Reindex",
+			"required": true,
+			"type": "dropdown",
+			"choices" : [
+				{
+					"name" : "Enabled",
+					"value" : "enabled"
+				},
+				{
+					"name" : "Disabled",
+					"value" : "disabled"
+				}
+			]
+		},		
+		{
+			"key": "cron-pattern",
+			"name": "Automatic Reindex CRON Pattern",
+			"required": false,
+			"type": "text",
+			"branchingLogic": {
+				"field": "cron-enabled",
+				"op": "=",
+				"value": "enabled"
+			}
+		},
+		{
 			"key": "api-keys",
 			"name": "API Keys",
 			"required": false,

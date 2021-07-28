@@ -8,6 +8,7 @@ use SearchEngineService;
  * ExternalModule  - (required) Abstract implementation of REDCap module
  */
 class ExternalModule extends \ExternalModules\AbstractExternalModule {	
+	
 	/**
 	 * __construct
 	 *
@@ -40,14 +41,23 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 
 		try 
 		{		
-			$logger = \Logging\Log::getLogger(false);
+			// Create a log handler to store logs to REDCap database.
+			$moduleLogHandler = new \Logging\ExternalModuleLogHandler($this);
+			$moduleLogHandler->setFormatter(new \Monolog\Formatter\LineFormatter('%message%'));
 
+			// Get the default logger and add the REDCap log to it.
+			$logger = \Logging\Log::getLogger();
+			$logger->pushHandler($moduleLogHandler);
+
+			// Create the search engine service, and distory the current index
 			$searchService = new SearchEngineService($this, $logger);
 			$searchService->destroy();
 	
+			// Get all updated projects.
 			$projectService = new ProjectService($this, $logger);
 			$projects = $projectService->getProjects();
 	
+			// Update the search service using the new documents
 			$searchService->updateAll($projects);
 
 			$message = "The {$cron['cron_name']} cron job service completed.";

@@ -4,6 +4,7 @@ namespace Controllers;
 
 use ProjectService;
 use SearchEngineService;
+use CronService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 
@@ -50,13 +51,23 @@ class ControlCenterController extends AppController {
      */
     function view(Request $request, Response $response) : Response { 
         $searchService    = new SearchEngineService($this->module, $this->logger);
+        
         $projectService   = new ProjectService($this->module, $this->logger);
         $projects         = $projectService->getProjects();
+
+        $cronService = new CronService($this->module, $this->logger);
+        $cron               = $cronService->getDetails();
+        $cron["enabled"]    = $this->module->getSystemSetting("cron-enabled");
+        if ($cron["enabled"] === "enabled")
+        {
+            $cron["schedule"] = $cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("cron-pattern"));
+        }
 
         $context = $this->createContext("System View", [
             "engine"     => $searchService->getSearchEngineSettings(),
             "projects"   => $projects,
             "stats"      => $searchService->getStats(),
+            "cron"       => $cron,
             "paths"      => array(
                 "reindex"  => $this->module->getUrl('index.php')."&entity=control-center&action=reindex"
             )
@@ -82,10 +93,14 @@ class ControlCenterController extends AppController {
         $projects = $projectService->getProjects();
         $searchService->updateAll($projects);
 
+        $handler = $this->logger->popHandler();
+        $log = stream_get_contents($handler->getStream(), -1, 0);
+
         $context = $this->createContext("System Reindex", [
             "engine"     => $searchService->getSearchEngineSettings(),
             "projects"   => $projects,
             "stats"      => $searchService->getStats(),
+            "log"        => $log,
             "paths"      => array(
                 "view"  => $this->module->getUrl('index.php')."&entity=control-center&action=view"
             )
