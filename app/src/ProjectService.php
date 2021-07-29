@@ -24,7 +24,60 @@ class ProjectService extends AbstractService {
 
         return $projects;
     }
+        
+    /**
+     * getDetails
+     *
+     * @param  mixed $pid
+     * @return array
+     */
+    function getDetails(int $pid) : array {
+        $sql = "select * from redcap_projects where project_id = ?";
+		
+        $details = [];
+        $results = $this->module->query($sql, $pid);
+		if ($results && $results->num_rows > 0)
+		{
+			$details = $results->fetch_assoc();
+		}
+        return $details;
+    }
     
+    /**
+     * getLead
+     *
+     * @param  array $details
+     * @return array
+     */
+    function getLead(array $details = []) : array {
+        $lead = [
+            "email" => "",
+            "formatted" => "NA",
+            "lastname" => "",
+            "firstname" => ""
+        ];
+        
+        if (strlen($details["project_pi_email"]) > 0)
+        {
+            $lead["email"]      = $details["project_pi_email"];
+            $lead["formatted"]  = $details["project_pi_email"];
+
+            if (strlen($details["project_pi_lastname"]) > 0)
+            {
+                $lead["lastname"]   = $details["project_pi_lastname"];
+                $lead["formatted"]  = $details["project_pi_lastname"];
+
+                if (strlen($details["project_pi_firstname"]) > 0)
+                {
+                    $lead["firstname"] = $details["project_pi_firstname"];
+                    $lead["formatted"] = $details["project_pi_lastname"].", ".$details["project_pi_firstname"];
+                }
+            }
+        }
+
+        return $lead;
+    }
+
     /**
      * createProject
      *
@@ -45,6 +98,7 @@ class ProjectService extends AbstractService {
 
         if ($includChildren && $isEnabled){
             $p->documents = $this->getProjectDocuments($p);
+            $p->lead      = $this->getLead($this->getDetails($pid));
         }
 
         return $p;

@@ -163,9 +163,7 @@ class ProjectController extends AppController {
                 array_push($indexedProjects, [
                     "title" => $project->title,
                     "document_count" => count($project->documents),
-                    "leads" => [
-                        "pi" => [ "name" => "N/A", "email" => "" ]
-                    ]
+                    "lead" => $project->lead
                 ]);
             }
         }

@@ -19,7 +19,7 @@
               <tr>
                 <th scope="col">Project</th>
                 <th scope="col">Documents</th>
-                <th scope="col">Lead(s)</th>
+                <th scope="col">Lead</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -50,10 +50,10 @@ $(document).ready(function() {
               , columns: [
                   { "data": "title" }
                   , { "data": "document_count" }
-                  , { "data": "leads"
+                  , { "data": "lead"
                       , "render" : function ( data, type, row ) { 
-                            var mailto  = (data.pi.email) ? "mailto: " + data.pi.email : "#";
-                            return '<a href="' + mailto +'">' + data.pi.name +'</a>'; 
+                            var mailto  = (data.email) ? "mailto: " + data.email : "#";
+                            return '<a href="' + mailto +'">' + data.formatted +'</a>'; 
                     }                  
                   }
               ]
