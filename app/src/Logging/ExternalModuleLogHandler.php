@@ -35,7 +35,6 @@ class ExternalModuleLogHandler extends AbstractProcessingHandler
     protected function write(array $record): void
     {
         $parameters = array_merge($record['context'], [
-            'channel' => $record['channel'],
             'level' => $record['level']
         ]);
         
