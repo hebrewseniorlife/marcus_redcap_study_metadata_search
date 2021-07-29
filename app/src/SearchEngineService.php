@@ -35,7 +35,7 @@ class SearchEngineService extends AbstractService {
     function getSearchEngineSettings() : SearchEngineSettings 
     {
         $searchProviderName = $this->module->getSystemSetting("search-provider");
-        if (count($searchProviderName) == 0){
+        if (strlen($searchProviderName) === 0){
             $searchProviderName = 'PhpSearchEngine';
         }
 
@@ -105,6 +105,8 @@ class SearchEngineService extends AbstractService {
      */
     function search(string $phrase, array $options = []) : array
     {
+        $this->logger->info("Search requested (see context).", ["phrase" => $phrase]);
+
         return $this->engine->search($phrase, $options);
     }
     
@@ -117,6 +119,8 @@ class SearchEngineService extends AbstractService {
      */
     function searchBy(string $field, string $value) : array
     {
+        $this->logger->info("Search By requested (see context).", ["field" => $field, "value" => $value]);
+
         return $this->engine->searchBy($field, $value);
     }
     
