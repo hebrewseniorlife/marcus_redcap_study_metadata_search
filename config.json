@@ -153,7 +153,7 @@
 			"cron_name": "marcus_redcap_study_metadata_search_rebuild",
 			"cron_description": "Routine to rebuild the search engine index based on CRON pattern",
 			"method": "rebuild_search_engine_index",
-			"cron_frequency": "604800",
+			"cron_frequency": "86400",
 			"cron_max_run_time": "86400"
 	 	}
 	],
