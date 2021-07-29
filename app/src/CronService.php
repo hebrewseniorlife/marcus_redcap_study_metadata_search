@@ -121,9 +121,17 @@ class CronService extends AbstractService {
 	 * @param  string $name
 	 * @return array
 	 */
-    public function getLogs($name) : array
+    public function getLogs() : array
     {
-        return [];
+		$sql = "select log_id, timestamp, user, ip, message order by timestamp desc limit 100";
+
+		$logs 	 = [];
+		$results = $this->module->queryLogs($sql);
+		if ($results && $results->num_rows > 0)
+		{
+			$logs = $results->fetch_all(MYSQLI_ASSOC);
+		}
+        return $logs;
     }
 
     

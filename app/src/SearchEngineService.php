@@ -64,7 +64,9 @@ class SearchEngineService extends AbstractService {
      */
     function updateAll(array $projects = [])
     {
-        $this->logger->warning("Updating all projects (n={count($projects)}). Rebuilding search engine index.");
+        $count = count($projects);
+        $this->logger->warning("Updating all projects (n={$count}). Rebuilding search engine index.");
+        
         $this->engine->rebuild();
         
         foreach($projects as $project)

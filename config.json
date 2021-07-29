@@ -99,7 +99,7 @@
 			]
 		},
 		{
-			"key": "cron-enabled",
+			"key": "autorebuild-enabled",
 			"name": "Automatic Reindex",
 			"required": true,
 			"type": "dropdown",
@@ -115,12 +115,12 @@
 			]
 		},		
 		{
-			"key": "cron-pattern",
+			"key": "autorebuild-pattern",
 			"name": "Automatic Reindex CRON Pattern",
 			"required": false,
 			"type": "text",
 			"branchingLogic": {
-				"field": "cron-enabled",
+				"field": "autorebuild-enabled",
 				"op": "=",
 				"value": "enabled"
 			}
@@ -151,7 +151,7 @@
 	"crons": [      
 		{
 			"cron_name": "marcus_redcap_study_metadata_search_rebuild",
-			"cron_description": "Routine to rebuild the search engine index each week",
+			"cron_description": "Routine to rebuild the search engine index based on CRON pattern",
 			"method": "rebuild_search_engine_index",
 			"cron_frequency": "604800",
 			"cron_max_run_time": "86400"

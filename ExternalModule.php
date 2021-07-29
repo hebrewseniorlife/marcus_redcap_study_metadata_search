@@ -3,6 +3,7 @@ namespace Marcus\StudyMetadataSearch\ExternalModule;
 
 use ProjectService;
 use SearchEngineService;
+use CronService;
 
 /**
  * ExternalModule  - (required) Abstract implementation of REDCap module
@@ -39,34 +40,64 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 
 		$message = "";
 
-		try 
-		{		
-			// Create a log handler to store logs to REDCap database.
-			$moduleLogHandler = new \Logging\ExternalModuleLogHandler($this);
-			$moduleLogHandler->setFormatter(new \Monolog\Formatter\LineFormatter('%message%'));
+		// Set up Monolog and add the REDCap handler to it.
+		$logger = \Logging\Log::getLogger('php://output');
+		$logger->pushHandler(new \Logging\ExternalModuleLogHandler($this));
 
-			// Get the default logger and add the REDCap log to it.
-			$logger = \Logging\Log::getLogger();
-			$logger->pushHandler($moduleLogHandler);
+		// Get the system setting for automatic-reindex.		
+		$enabled = $this->getSystemSetting("autorebuild-enabled");
+		$logger->info("Automatic reindex is {$enabled}.");
 
-			// Create the search engine service, and distory the current index
-			$searchService = new SearchEngineService($this, $logger);
-			$searchService->destroy();
-	
-			// Get all updated projects.
-			$projectService = new ProjectService($this, $logger);
-			$projects = $projectService->getProjects();
-	
-			// Update the search service using the new documents
-			$searchService->updateAll($projects);
-
-			$message = "The {$cron['cron_name']} cron job service completed.";
-
+		// // If the automatic-reindex is not enabled then exit
+		if ($enabled !== "enabled")
+		{
+			return "Automatic reindex is not enabled.";			
 		}
-		catch (\Exception $e) {
-			$message = "The {$cron['cron_name']} cron job service failed: ".$e->getMessage();
+
+		// Get the cron service
+		$cronService = new CronService($this, $logger);
+
+		// Get the details inclulding the cron pattern and schedule
+		$details  = $cronService->getDetails();
+		$pattern  = $this->getSystemSetting('autorebuild-pattern');
+		$schedule = $cronService->getSchedule($details['last_start_time'], $pattern);
+
+		$is_due = ($schedule['is_due'] === true) ? "true" : "false"; 
+		$logger->info("Automatic reindex scheduled for {$schedule['next_run_time']} (due={$is_due}).");
+
+		// if the schedule says we are due to run then 
+		if ($schedule['is_due'] === true){
+			// Log the start of the cron job (in REDCap)
+			$cronService->logStart();
+
+			try
+			{
+				// Create the search engine service, and distory the current index
+				$searchService = new SearchEngineService($this, $logger);
+				$searchService->destroy();
+
+				// Get all updated projects.
+				$projectService = new ProjectService($this, $logger);
+				$projects = $projectService->getProjects();
+
+				// Update the search service using the new documents
+				$searchService->updateAll($projects);
+
+				$message = "The search engine index has been rebuilt.";
+			}
+			catch (\Exception $e) 
+			{
+				$message = "The search engine index rebuild failed: ".$e->getMessage();
+			}
+			finally
+			{
+				$logger->info($message);
+			}
+			
+			// Log the stop of the cron job (in REDCap)
+			$cronService->logStop();
 		}
-		
+
 		return $message;
 	}
 

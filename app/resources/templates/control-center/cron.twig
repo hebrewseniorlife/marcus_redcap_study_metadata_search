@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col-md-12">
     <div class="card">
-      <h5 class="card-header">CRON Details (automatic reindex)</h5>
+      <h5 class="card-header">CRON Details <small>(automatic reindex)</small></h5>
       <div class="card-body">
         <table class="table">
           <tr>
@@ -27,7 +27,44 @@
             </tr>    
           {% endif %}          
         </table>
+        <hr/>
+        <h5>Logs <small>(limit=100)</small></h5>
+        <br/>
+        <table class="table" id="log-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Message</th>
+            </tr>          
+          </thead>
+          <tbody>
+            {% for log in cron.logs %}
+              <tr>
+                <td>{{log.timestamp}}</td>
+                <td>{{log.message}}</td>
+              </tr>        
+            {% else %}
+              <tr>
+                <td colspan="3">No logs available</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>      
 </div>
+
+{% if cron.logs | length > 0 %}
+<script type="text/javascript">
+$(document).ready(function() {
+      $('#log-table').DataTable({
+        dom: 'fltip'
+        , "pageLength": 10
+        , "oLanguage": {
+            "sSearch": "Filter"
+        }
+    });
+});
+</script>
+{% endif %}

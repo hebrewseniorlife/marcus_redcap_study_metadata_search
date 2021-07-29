@@ -57,10 +57,11 @@ class ControlCenterController extends AppController {
 
         $cronService = new CronService($this->module, $this->logger);
         $cron               = $cronService->getDetails();
-        $cron["enabled"]    = $this->module->getSystemSetting("cron-enabled");
+        $cron["logs"]       = $cronService->getLogs();
+        $cron["enabled"]    = $this->module->getSystemSetting("autorebuild-enabled");
         if ($cron["enabled"] === "enabled")
         {
-            $cron["schedule"] = $cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("cron-pattern"));
+            $cron["schedule"] = $cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("autorebuild-pattern"));
         }
 
         $context = $this->createContext("System View", [
