@@ -5,7 +5,7 @@
         <hr/>
         {% if search.field | length > 0 %} 
         <div class="mb-2 float-right">
-            <code>Note: Search results on field ({{search.field}}) = {{search.value}}</code>
+            <code>Note: Search results on field ({{search.field}}) = {{search.value}} [<a href="{{paths.search | raw}}">clear</a>]</code>
         </div>
         {% endif %}    
     </div>
@@ -47,7 +47,7 @@
                                     <td>{{ document.name }}</td>
                                     <td><a href="{{paths.search_by | raw}}&field=form_name&value={{ document.context.form_name }}">{{ document.context.form_name }}</a></td>
                                     <td>{{ document.entity }}</td>
-                                    <td>{{ document.label }}</td>
+                                    <td>{{ document.label|striptags|u.truncate(100, '...') }}</td>
                                     <td>{{ document.field_type }}</td>       
                                     <td>{{ document.context.select_choices_or_calculations | split("|") | join('</br>') | raw }}</td> 
                                     {# <td style="display:none">{{ document.context | json_encode() }}</td>  #}
