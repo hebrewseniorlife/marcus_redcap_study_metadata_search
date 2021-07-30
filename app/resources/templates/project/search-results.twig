@@ -37,6 +37,7 @@
                             <tbody>
                                 
                         {% for id, document in results.documents %}
+                                {% set formatted_label = document.label|striptags %}
                                 <tr>
                                     <td scope="row">
                                         <div class="form-check">
@@ -47,7 +48,7 @@
                                     <td>{{ document.name }}</td>
                                     <td><a href="{{paths.search_by | raw}}&field=form_name&value={{ document.context.form_name }}">{{ document.context.form_name }}</a></td>
                                     <td>{{ document.entity }}</td>
-                                    <td>{{ document.label|striptags|u.truncate(100, '...') }}</td>
+                                    <td>{% if formatted_label|length <= 200 %}{{formatted_label}}{% else %}{{formatted_label|slice(0,200)}}...{% endif %}</td>
                                     <td>{{ document.field_type }}</td>       
                                     <td>{{ document.context.select_choices_or_calculations | split("|") | join('</br>') | raw }}</td> 
                                     {# <td style="display:none">{{ document.context | json_encode() }}</td>  #}
