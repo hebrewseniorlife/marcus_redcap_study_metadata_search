@@ -86,6 +86,8 @@ class ControlCenterController extends AppController {
     }
 
     function reindex(Request $request, Response $response) : Response { 
+        $this->logger->info("Manual reindex requested from Control Center.");
+        
         $searchService = new SearchEngineService($this->module, $this->logger);
         $searchService->destroy();
 
@@ -94,8 +96,13 @@ class ControlCenterController extends AppController {
         $projects = $projectService->getProjects();
         $searchService->updateAll($projects);
 
-        $handler = $this->logger->popHandler();
-        $log = stream_get_contents($handler->getStream(), -1, 0);
+        $handler = \Logging\Log::getStreamHandler();
+        
+        $log = "";
+        if ($handler != null)
+        {
+            $log = stream_get_contents($handler->getStream(), -1, 0);
+        }
 
         $context = $this->createContext("System Reindex", [
             "engine"     => $searchService->getSearchEngineSettings(),

@@ -53,6 +53,38 @@ class Log {
 		self::$instance = $logger;
     }
     
+    
+    /**
+     * getStreamHandler
+     *
+     * @param  mixed $stream
+     * @return StreamHandler
+     */
+    public static function getStreamHandler($stream = Log::DEFAULT_STREAM) : ? StreamHandler
+    {
+        $handler = null;
+
+		if (!self::$instance)
+        {
+			return $handler;
+        }
+
+        $handlers = self::$instance->getHandlers();
+        foreach($handlers as $handler)
+        {
+            if (get_class($handler) === StreamHandler::class)
+            {
+                $metadata = stream_get_meta_data($handler->getStream());
+                if ($metadata['uri'] === $stream)
+                {
+                    return $handler;
+                }
+            }
+        }
+
+        return $handler;
+    }
+    
     /**
      * createStreamHandler
      *
@@ -60,9 +92,9 @@ class Log {
      * @param  mixed $useBuffer
      * @param  mixed $level
      * @param  mixed $format
-     * @return AbstractProcessingHandler
+     * @return StreamHandler
      */
-    public static function createStreamHandler($stream, $useBuffer = false, $level = Log::DEFAULT_LEVEL, $format = Log::DEFAULT_FORMAT) : AbstractProcessingHandler{
+    public static function createStreamHandler($stream, $useBuffer = false, $level = Log::DEFAULT_LEVEL, $format = Log::DEFAULT_FORMAT) : StreamHandler{
         // Create a new line formatter based on defaults
         $formatter = new LineFormatter($format, Log::DATETIME_FOMAT);
         $formatter->ignoreEmptyContextAndExtra(true);
