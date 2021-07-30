@@ -3,7 +3,6 @@
 namespace Controllers;
 
 use SearchEngineService;
-use DocumentHelper;
 use Controllers\ApiController;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
@@ -23,11 +22,11 @@ class SearchEngineController extends ApiController{
      * @param  mixed $module
      * @return void
      */
-    function __construct(object $module)
+    function __construct(object $module, $logger = null)
     {
-        parent::__construct($module);
+        parent::__construct($module, $logger);
 
-        $this->searchEngine = new SearchEngineService($this->module, $this->logger);
+        $this->searchEngine = new SearchEngineService($this->module, $logger);
     }
 
     /**
@@ -38,15 +37,17 @@ class SearchEngineController extends ApiController{
      * @return Response
      */
     function handle(Request $request, Response $response) : Response {
-        switch($request->get("action")){
+        $action = $request->get("action", "");
+        switch($action){
+            case '': // No action provided...
             case 'search':
                 return $this->search($request, $response);
                 break;     
             case 'search-by':
                 return $this->searchBy($request, $response);
                 break; 
-            default:
-                return new JsonResponse(["message" => "Action not supported."], 
+            default: // An unknown action is provided
+                return new JsonResponse(["message" => "Action specified ({$action}) not supported."], 
                     Response::HTTP_BAD_REQUEST);
                 break;                
         }
@@ -88,7 +89,7 @@ class SearchEngineController extends ApiController{
 
         $field  = $request->get("field", "");
         $value  = $request->get("value", "");
-        $result = [];
+        $results = [];
         $message = "";
 
         if (array_search($field, $fields) === false) 
@@ -101,12 +102,12 @@ class SearchEngineController extends ApiController{
         }
         else
         {
-            $result = $this->searchEngine->searchBy($field, $value);
+            $results = $this->searchEngine->searchBy($field, $value);
         }
 
         return new JsonResponse([
             "message" => $message
-            , "results" => $result
+            , "results" => $results
             , "search" => [
                 "term" => ""
                 , "field" => $field

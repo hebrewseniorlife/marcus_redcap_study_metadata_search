@@ -25,11 +25,11 @@ class CartController extends ApiController{
      * @param  mixed $module
      * @return void
      */
-    function __construct(object $module)
+    function __construct(object $module, $logger = null)
     {
-        parent::__construct($module);
+        parent::__construct($module, $logger);
 
-        $this->cart = new CartService($this->module, $this->logger);
+        $this->cart = new CartService($this->module, $logger);
     }
 
     /**
