@@ -35,15 +35,24 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	 */
 	public function getModuleInfo() : array {
 		$directoryName = $this->getModuleDirectoryName();
-		list($prefix, $version) 	= explode('_v', $directoryName);
-		list($major, $minor) 		= explode('.', $version);
+		list($prefix, $releaseVersion) 			= explode('_v', $directoryName);
+		list($releaseMajor, $releaseMinor) 		= explode('.', $version);
+
+		$directoryPath = $this->getModulePath();
+		$composer = json_decode(file_get_contents($directoryPath.'composer.json'), true);
+		list($composerMajor, $composerMinor) = explode('.', $composer['version']);
 
 		return [
-			"prefix" 	=> $prefix,
-			"version" 	=> $version,
-			"build" => [
-				"major" => $major,
-				"minor" => $minor,
+			'prefix' 	=> $prefix,
+			'release' => [
+				'version' 	=> $releaseVersion,
+				'major' 	=> $releaseMajor,
+				'minor' 	=> $releaseMinor,
+			],
+			'composer'	=> [
+				'version'	=> $composer['version'],
+				'major' 	=> $composerMajor,
+				'minor' 	=> $composerMinor
 			]
 		];
 	}
