@@ -59,7 +59,8 @@ class AppController {
             "module" => array(
                 "name"      => $name,
                 "prefix"    => $_GET["prefix"],
-                "pid"       => $_GET["pid"]
+                "pid"       => $_GET["pid"],
+                "info"      => $this->module->getModuleInfo() 
             ),
             "paths" => array(
                 "public"    => array(

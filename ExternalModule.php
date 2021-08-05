@@ -22,10 +22,30 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	/**
 	 * getPrefix
 	 *
-	 * @return void
+	 * @return string
 	 */
-	public function getPrefix(){
-		return "marcus_study_metadata_search";
+	public function getPrefix() : string {
+		return $this->getModuleInfo()["prefix"];
+	}
+	
+	/**
+	 * getModuleInfo
+	 *
+	 * @return array
+	 */
+	public function getModuleInfo() : array {
+		$directoryName = $this->getModuleDirectoryName();
+		list($prefix, $version) 	= explode('_v', $directoryName);
+		list($major, $minor) 		= explode('.', $version);
+
+		return [
+			"prefix" 	=> $prefix,
+			"version" 	=> $version,
+			"build" => [
+				"major" => $major,
+				"minor" => $minor,
+			]
+		];
 	}
 			
 	/**
