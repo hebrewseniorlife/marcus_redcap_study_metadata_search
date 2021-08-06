@@ -28,16 +28,17 @@
                                     <th scope="col">Project</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Form</th>
-                                    <th scope="col">Entity</th>
                                     <th scope="col">Label</th>
                                     <th scope="col">Data Type</th>
                                     <th scope="col">Choices/Calculation</th>
+                                    <th scope="col">Note(s)</th>
                                 </tr>
                             </thead>     
                             <tbody>
                                 
                         {% for id, document in results.documents %}
                                 {% set formatted_label = document.label|striptags %}
+                                {% set formatted_note = document.note|striptags %}
                                 <tr>
                                     <td scope="row">
                                         <div class="form-check">
@@ -47,10 +48,10 @@
                                     <td><a href="{{paths.search_by | raw}}&field=project_id&value={{ document.project_id }}">{{ document.project_title }} ({{ document.project_id }})</a></td>
                                     <td>{{ document.name }}</td>
                                     <td><a href="{{paths.search_by | raw}}&field=form_name&value={{ document.context.form_name }}">{{ document.context.form_name }}</a></td>
-                                    <td>{{ document.entity }}</td>
                                     <td>{% if formatted_label|length <= 200 %}{{formatted_label}}{% else %}{{formatted_label|slice(0,200)}}...{% endif %}</td>
                                     <td>{{ document.field_type }}</td>       
                                     <td>{{ document.context.select_choices_or_calculations | split("|") | join('</br>') | raw }}</td> 
+                                    <td>{% if formatted_note|length <= 200 %}{{formatted_note}}{% else %}{{formatted_note|slice(0,200)}}...{% endif %}</td>
                                     {# <td style="display:none">{{ document.context | json_encode() }}</td>  #}
                                 </tr>     
                         {% else %}
