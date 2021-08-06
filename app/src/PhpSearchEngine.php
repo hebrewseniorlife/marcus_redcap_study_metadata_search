@@ -190,6 +190,11 @@ class PhpSearchEngine implements ISearchEngine {
                 "_indexed" => true,
                 "_boost" => 10
             ],
+            "notes" => [
+                "_type" => "_default",
+                "_indexed" => true,
+                "_boost" => 10
+            ],            
             "entity" => [
                 "_type" => "_default",
                 "_indexed" => true,
