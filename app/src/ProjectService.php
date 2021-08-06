@@ -164,6 +164,7 @@ class ProjectService extends AbstractService {
         $document->entity      = "field";
         $document->name         = $metadata["field_name"];
         $document->label        = $metadata["field_label"];
+        $document->note         = $metadata["field_note"];
 
         $document->project_id       = $pid;
         $document->project_title    = $title;

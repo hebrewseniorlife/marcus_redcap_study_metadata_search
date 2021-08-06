@@ -67,11 +67,11 @@ class Document {
     public $project_title;
     
     /**
-     * notes
+     *  note
      *
      * @var string
      */
-    public $notes;
+    public $note;
     
     /**
      * data
