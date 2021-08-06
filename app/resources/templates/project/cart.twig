@@ -20,8 +20,9 @@
                             <thead>      
                             <tr>
                                     <th>#</th>
+                                    <th></th>
+                                    <th>Name</th>                                    
                                     <th>Project</th>
-                                    <th>Name</th>
                                     <th>Form</th>
                                     <th>Entity</th>
                                     <th>Label</th>
@@ -35,7 +36,7 @@
             </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="close-cart-button">Close</button>
       </div>
     </div>
   </div>
@@ -45,28 +46,37 @@
 <script type="text/javascript">
 $(document).ready(function() {
     $('#view-cart-link').click(onViewCartClick);
+    $('#close-cart-button').click(onCloseCartClick);
     $('#cart-form').submit(onCartFormSubmit);
 
-    $('#cart-table').DataTable({
+    var table = $('#cart-table').DataTable({
         dom: 'Bftip'
         , ajax: {
             url: '{{ paths.api | raw }}&entity=cart&action=getall',
             dataSrc: 'documents'
         }
-        , "oLanguage": {
+        , oLanguage: {
             "sSearch": "Filter"
         }
+        , rowReorder: {
+            selector: 'td:nth-child(2)'
+            , dataSrc: 'field_order'
+        }
         , columns: [
-            { 
+            {
+                "data" : "field_order"
+                , visible : false
+            }
+            , { 
                 "data" : "id"
                 , "render" : function ( data, type, row ) { 
                         return '<div class="form-check">' +
-                                    '<input class="form-check-input" type="checkbox" name="document[]" id="' + data + '">' +
+                                    '<input class="form-check-input" type="checkbox" name="document[]" value="' + data + '">' +
                                 '</div>'; 
                     }
             }
+            , { "data": "name" }            
             ,  { "data": "project_title" }
-            , { "data": "name" }
             , { "data": "form_name" }
             , { "data": "entity" }
             , { "data": "label" 
@@ -93,14 +103,35 @@ $(document).ready(function() {
                 text: 'Remove from Cart',
                 action: function ( e, dt, node, config ) {
                     var action = $('#cart-form > [name="action"]');
-                    action.val('remove');
+                    action.val('remove');                    
 
                     $('#cart-form').submit();
                 }
-            }       
+            },     
+            {
+                text: 'Save Order',
+                action: function ( e, dt, node, config ) {
+                    $('#cart-form input:checkbox').prop('checked', true);
+
+                    var action = $('#cart-form > [name="action"]');
+                    action.val('reorder');
+
+                    $('#cart-form').submit();
+                }
+            },
+            {
+                text: 'Clear All',
+                action: function ( e, dt, node, config ) {
+                    var action = $('#cart-form > [name="action"]');
+                    action.val('clear');                    
+
+                    $('#cart-form').submit();
+                }
+            }                    
         ]
         , rowId: 'id'
         , paging: true
+        , order: [[ 0, 'asc' ]]
     });
 } );
 
@@ -121,6 +152,8 @@ function onCartFormSubmit(e, dt, node, config) {
     var form = $(this);
     var url = form.attr('action');
 
+    // console.log(form.serialize());
+
     $.ajax({
            type: "POST",
            url: url,
@@ -139,6 +172,10 @@ function onCartFormSubmit(e, dt, node, config) {
                 }
            }
     }); 
+}
+
+function onCloseCartClick(){
+    $('#cart-alert').hide();
 }
 
 </script>

@@ -11,6 +11,12 @@ $(document).ready(function() {
   $('#{{ prefix }}-alert').on('message', function(event, data) {
       $('#{{ prefix }}-alert-text').text(data.text);
       $(this).addClass('bs-callout-' + data.style).show();
+
+      if (data.style === "success"){
+        setTimeout(() => {
+          $('#{{ prefix }}-alert').hide();
+        }, 1500);
+      }
   });
 });
 </script>

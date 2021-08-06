@@ -63,7 +63,8 @@ class DocumentHelper {
      * @param  mixed $entity
      * @return void
      */
-    public static function flatten($entity = []){
+    public static function flatten($entity = [])
+    {
         $flat = [];
 
         foreach($entity as $key => $value){
@@ -76,7 +77,37 @@ class DocumentHelper {
         }
         return $flat;
     }
-      
+    
+    /**
+     * flattenAll
+     *
+     * @param  mixed $documents
+     * @return void
+     */
+    public static function flattenAll(array &$documents)
+    {
+        foreach($documents as $key => $value)
+        {
+            $documents[$key] = DocumentHelper::flatten($documents[$key]);
+        }
+    }
+        
+    /**
+     * setOrder
+     *
+     * @param  array &$documents
+     * @param  string $orderFieldName
+     * @return void
+     */
+    public static function setFieldOrder(array &$documents, string $orderFieldName = 'field_order')
+    {
+        $order = 1;
+        foreach($documents as $key => $value)
+        {
+            $documents[$key][$orderFieldName] = $order++; 
+        }
+    }
+
     /**
      * getMetadata
      *

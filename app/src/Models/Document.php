@@ -39,6 +39,13 @@ class Document {
     public $field_type;
     
     /**
+     * field_order
+     *
+     * @var int
+     */
+    public $field_order;
+
+    /**
      * form_name
      *
      * @var string
@@ -58,6 +65,13 @@ class Document {
      * @var string
      */
     public $project_title;
+    
+    /**
+     * notes
+     *
+     * @var string
+     */
+    public $notes;
     
     /**
      * data

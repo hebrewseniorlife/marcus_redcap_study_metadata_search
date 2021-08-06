@@ -50,6 +50,9 @@ class CartController extends ApiController{
             case 'clear':
                 return $this->clear($request, $response);
                 break; 
+            case 'reorder':
+                return $this->reorder($request, $response);
+                break;                 
             case 'getall':
                 return $this->getall($request, $response);
                 break; 
@@ -107,8 +110,9 @@ class CartController extends ApiController{
     function getAll(Request $request, Response $response) : Response {
         $searchEngine = new SearchEngineService($this->module, $this->logger);
         $documents = $searchEngine->getDocuments($this->cart->getAll());
-
-        $documents = array_map('DocumentHelper::flatten', $documents);
+        
+        DocumentHelper::setFieldOrder($documents);
+        DocumentHelper::flattenAll($documents);
 
         return new JsonResponse([
             "message" => "",
@@ -133,6 +137,23 @@ class CartController extends ApiController{
     }
     
     /**
+     * reorder
+     *
+     * @param  mixed $request
+     * @param  mixed $response
+     * @return Response
+     */
+    function reorder(Request $request, Response $response) : Response { 
+        $documents  = $request->get("document", []);
+        $count      = $this->cart->reorder($documents);    
+
+        return new JsonResponse([
+            "message" => "The cart order has been saved."
+            ,"count" => $count
+            ]);         
+    }
+
+    /**
      * export
      *
      * @param  mixed $request
@@ -143,11 +164,15 @@ class CartController extends ApiController{
         $searchEngine   = new SearchEngineService($this->module, $this->logger);
         $documents      = $searchEngine->getDocuments($this->cart->getAll());
 
+        DocumentHelper::setFieldOrder($documents);
+
         $exportDate     = date("Ymd");
 
         $format = $request->get("format");
         switch($format){
             case 'csv':
+                DocumentHelper::flattenAll($documents);
+                
                 $contentType    = 'text/csv';
                 $content        = DocumentHelper::writeToCsv($documents);
                 $filename       = 'study_metdata_cart_'.$exportDate.'.csv';
@@ -169,11 +194,15 @@ class CartController extends ApiController{
         $response->setContent($content);
         $response->headers->set('Content-Type', $contentType);
         
-        $disposition = HeaderUtils::makeDisposition(
-            HeaderUtils::DISPOSITION_ATTACHMENT,
-            $filename
-        );
-        $response->headers->set('Content-Disposition', $disposition);
+        $download = strtolower($request->get("download", "true"));
+        if ($download === "true" || $download === "t" || $download === "1")
+        {
+            $disposition = HeaderUtils::makeDisposition(
+                HeaderUtils::DISPOSITION_ATTACHMENT,
+                $filename
+            );
+            $response->headers->set('Content-Disposition', $disposition);
+        }
 
         $response->setStatusCode(Response::HTTP_OK);
 
