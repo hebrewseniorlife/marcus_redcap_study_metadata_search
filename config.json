@@ -95,8 +95,23 @@
 				{
 					"name" : "REDCap",
 					"value" : "redcap"
+				},
+				{
+					"name" : "Custom",
+					"value" : "custom"
 				}
 			]
+		},		
+		{
+			"key": "custom-temp-folder",
+			"name": "Custom file system path for Temp folder",
+			"required": false,
+			"type": "text",
+			"branchingLogic": {
+				"field": "temp-folder",
+				"op": "=",
+				"value": "custom"
+			}
 		},
 		{
 			"key": "autorebuild-enabled",

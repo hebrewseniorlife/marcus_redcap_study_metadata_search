@@ -41,6 +41,10 @@ class SearchEngineService extends AbstractService {
 
         $tempFolder = $this->module->getSystemSetting("temp-folder");
         switch($tempFolder){
+            case 'custom' :
+                $customFolderPath   = $this->module->getSystemSetting("custom-temp-folder");
+                $tempFolderPath     = realpath($customFolderPath); // May need to be upgraded in future version...
+                break;
             case 'system':
                 $tempFolderPath = sys_get_temp_dir();
                 break;
@@ -49,6 +53,11 @@ class SearchEngineService extends AbstractService {
                 $tempFolderPath = constant("APP_PATH_TEMP");
                 break;
         }
+
+        if (!is_dir($tempFolderPath))
+        {
+            throw new Exception("Temp folder ($tempFolderPath) is not a directory. See system-level module configuration.");
+        }        
 
         $settings = new SearchEngineSettings($searchProviderName);
         $settings->providerSettings["temp_folder"] = $tempFolderPath;
