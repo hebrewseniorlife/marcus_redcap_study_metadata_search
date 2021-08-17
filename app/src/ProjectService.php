@@ -2,7 +2,7 @@
 
 use Models\Document as Document;
 use Models\Project as Project;
-use Arrayy\Arrayy as Arrayy;
+use function Stringy\create as s;
 
 /**
  * ProjectService
@@ -99,6 +99,7 @@ class ProjectService extends AbstractService {
         if ($includChildren && $isEnabled){
             $p->documents = $this->getProjectDocuments($p);
             $p->lead      = $this->getLead($this->getDetails($pid));
+            $p->forms     = $this->getUniqueForms($p->documents);
         }
 
         return $p;
@@ -143,13 +144,34 @@ class ProjectService extends AbstractService {
         $wildcardList = [];
 
         $denylist = $this->module->getProjectSetting("forms-denylist", $pid);
-        if (count($denylist) > 0){
+        if (strlen($denylist) > 0){
             $wildcardList = preg_split('/\s*,\s*/', trim($denylist)); 
         }
 
         return $wildcardList;
     }
-    
+        
+    /**
+     * getUniqueForms
+     *
+     * @param  mixed $documents
+     * @return array
+     */
+    function getUniqueForms(array $documents) : array
+    {
+        $forms = [];
+
+        foreach($documents as $document)
+        {
+            $forms[$document->form_name] = [
+                    "name"  => $document->form_name,
+                    "title" => $document->form_title
+            ];
+        }
+
+        return array_values($forms);
+    }
+
     /**
      * createDocument
      *
@@ -170,6 +192,7 @@ class ProjectService extends AbstractService {
         $document->project_title    = $title;
 
         $document->form_name    = $metadata["form_name"];
+        $document->form_title   = (string) s($metadata["form_name"])->humanize()->titleize();
         $document->field_type   = $metadata["field_type"];
 
         $document->context = $metadata;

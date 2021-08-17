@@ -51,6 +51,13 @@ class Document {
      * @var string
      */
     public $form_name;
+
+    /**
+     * form_title
+     *
+     * @var string
+     */
+    public $form_title;
     
     /**
      * project_id

@@ -1,10 +1,11 @@
 composer.phar
 
 /vendor/
-/public/vendor/
+# /public/vendor/
 /dist/
 /node_modules/
 
+thumbs.db
 debug.log
 
 .yarn/*

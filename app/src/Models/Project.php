@@ -39,6 +39,13 @@ class Project {
      * @var array
      */
     public $form_denylist = [];
+
+    /**
+     * forms
+     *
+     * @var array
+     */
+    public $forms = [];
     
     /**
      * getDocument

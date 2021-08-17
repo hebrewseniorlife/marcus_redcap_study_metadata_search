@@ -12,11 +12,33 @@
 {% endblock %}
 
 {% block body %}
-	{% include 'search-form.twig' %}
+<div class="row">
+  	<div class="col-md-10">
+		<ul class="nav nav-tabs" role="tablist">
+			<li class="nav-item">
+				<a class="nav-link active" id="text-search-tab" data-toggle="tab" href="#text-search">Search</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" id="browse-search-tab" data-toggle="tab" href="#browse-search">Browse</a>
+			</li>		  
+		</ul>
+	</div>
+</div>
+</br/>
+<div class="tab-content">
+	<div class="tab-pane fade show active" id="text-search" role="tabpanel">
+		{% include 'search-form.twig' %}
 
-	{% if results != null %}
-		{% include 'search-results.twig' %}
-	{% endif %}
+		{% if results != null %}
+			{% include 'search-results.twig' %}
+		{% endif %}
+	</div>
+	<div class="tab-pane fade" id="browse-search" role="tabpanel">
+		{% include 'browse-tree.twig' %}
+	</div>
+</div>
+
+
 
 	{% include 'cart.twig' %}
 {% endblock %}

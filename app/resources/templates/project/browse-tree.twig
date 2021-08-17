@@ -1,0 +1,87 @@
+<div class="row mb-3">
+    <div class="col-md-10">
+        <code>* Double click icon to automatically search by form</code>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-10">
+        <div id="tree-loader">Loading...</div>
+        <div id="tree"></div>
+    </div>
+</div>
+
+
+
+<script>
+MetadataSearchBrowser = {
+    createProjectTree: function (projects) {
+        var nodes = [];
+        for (var i = 0; i < projects.length; i++){
+            nodes.push(MetadataSearchBrowser.createProjectNode(projects[i]))
+        }
+        return nodes;
+    },
+
+    createProjectNode: function (project){
+        var node = {
+                "id" : "project-" + project.project_id,
+                "text": project.title,
+                "icon": "fa fa-folder",
+                "class": "project-node",
+                "nodes" : []
+        };
+        for(var i = 0; i < project.forms.length; i++){
+            node.nodes.push(MetadataSearchBrowser.createFormNode(project.project_id, project.forms[i]));
+        }
+        return node;
+    },
+
+    createFormNode: function(id, form){
+        var node = {
+            "id" : form.name,
+            "text": form.title + " (" + form.name + ")",
+            "icon": "fa fa-file-alt",
+            "class": "form-node"
+        };
+        return node;
+    },
+
+    renderTree: function(treeId, projects, searchByUrl){
+        var tree = MetadataSearchBrowser.createProjectTree(projects);        
+
+        $(treeId).bstreeview({ 
+            data: tree,
+            openNodeLinkOnNewTab: false
+        });
+
+        $(".form-node").each(function(index, element){
+            $(element).data("search_by_url", searchByUrl);
+
+            $(element).dblclick(function(event){
+                let searchByUrl = $(event.target).data("search_by_url");
+                let url         = searchByUrl + "&field=form_name&value=" + event.target.id;
+                window.location.href = url;
+            });;
+        });
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function() {
+    $("#browse-search-tab").click(function(){
+        $.ajax({
+            url: "{{ paths.api | raw }}&entity=project&action=list-forms",
+            success: function(data){
+                MetadataSearchBrowser.renderTree('#tree', data.projects, "{{paths.search_by | raw}}");
+            },
+            beforeSend: function() {
+                $('#tree-loader').show();
+            },
+            complete: function(){
+                $('#tree-loader').hide();
+            }            
+        });
+    });
+});
+</script>

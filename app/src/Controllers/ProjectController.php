@@ -54,6 +54,9 @@ class ProjectController extends AppController {
             case 'list-sources':
                 return $this->listSources($request, $response);
                 break;
+            case 'list-forms':
+                return $this->listForms($request, $response);
+                break;                
             case 'search-by': 
                 return $this->searchBy($request, $response);
                 break;
@@ -171,5 +174,34 @@ class ProjectController extends AppController {
         return new JsonResponse([
             "message" => "",
             "sources" => $indexedProjects]);  
+    }
+
+    /**
+     * listSources
+     *
+     * @param  mixed $request
+     * @param  mixed $response
+     * @return Response
+     */
+    function listForms(Request $request, Response $response) : Response {
+        $projectService   = new ProjectService($this->module, $this->logger);
+        $projects         = $projectService->getProjects();
+
+        $indexedProjects = [];
+        foreach($projects as $project)
+        {
+            if ($project->enabled === true)
+            {
+                array_push($indexedProjects, [
+                    "title" => $project->title,
+                    "project_id" => $project->project_id,
+                    "forms" => $project->forms
+                ]);
+            }
+        }
+
+        return new JsonResponse([
+            "message" => "",
+            "projects" => $indexedProjects]);  
     }
 }
