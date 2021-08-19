@@ -29,7 +29,6 @@ else
     else
     {
         $page = new HtmlPage();
-        $page->addStylesheet("home.css", 'screen,print');
         $page->PrintHeader();
         echo $response->getContent();
         $page->PrintFooter();
