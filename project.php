@@ -30,7 +30,9 @@ else
     {
         $page = new HtmlPage();
         $page->PrintHeader();
+        echo '<div class="my-3">';
         echo $response->getContent();
+        echo '</div>';
         $page->PrintFooter();
     }
 }
