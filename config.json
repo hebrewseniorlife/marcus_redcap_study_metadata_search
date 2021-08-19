@@ -27,7 +27,7 @@
 				"key": "project-metadata-search",
 				"name": "Study Metadata Search",
 				"icon": "fas fa-search",
-				"url": "project.php"
+				"url": "project.php?action=search"
 			}								
 		],
 		"control-center": [
