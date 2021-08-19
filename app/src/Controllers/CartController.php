@@ -115,9 +115,15 @@ class CartController extends ApiController{
         DocumentHelper::setFieldOrder($documents);
         DocumentHelper::flattenAll($documents);
 
-        return new JsonResponse([
+        // Fix problem with non-UTF8 characters found in REDCap
+        return new Response(json_encode([
             "message" => "",
-            "documents" => $documents]);  
+            "documents" => $documents
+        ], JSON_UNESCAPED_UNICODE));
+
+        // return new JsonResponse([
+        //     "message" => "",
+        //     "documents" => $documents]);  
     }
     
     /**
