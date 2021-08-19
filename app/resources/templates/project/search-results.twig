@@ -15,9 +15,8 @@
     <div class="col-md-10">
         {% include 'message-panel.twig' with { 'prefix' : 'documents' } %}
 
-        <form id="documents-form" action="{{paths.api | raw}}" accept-charset="UTF-8" method="post">
+        <form id="documents-form" action="{{paths.cart | raw}}" accept-charset="UTF-8" method="post">
             <input type="hidden" name="action" value=""/>
-            <input type="hidden" name="entity" value="cart"/>
             <div class="row">
                 <div class="col-md-12">  
                         

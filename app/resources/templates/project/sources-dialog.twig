@@ -44,7 +44,7 @@ $(document).ready(function() {
           $('#sources-table').DataTable({
               dom: 't'
               , ajax: {
-                  url: '{{ paths.api | raw }}&entity=project&action=list-sources',
+                  url: '{{ paths.project | raw }}&action=list-sources',
                   dataSrc: 'sources'
               }
               , columns: [
@@ -52,8 +52,8 @@ $(document).ready(function() {
                   , { "data": "document_count" }
                   , { "data": "lead"
                       , "render" : function ( data, type, row ) { 
-                            var mailto  = (data.email) ? "mailto: " + data.email : "#";
-                            return '<a href="' + mailto +'">' + data.formatted +'</a>'; 
+                            var mailto  = (data.email) ? data.email : "?";
+                            return '<a href="mailto:' + mailto +'">' + data.formatted +'</a>'; 
                     }                  
                   }
               ]

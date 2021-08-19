@@ -61,8 +61,13 @@ class ProjectController extends AppController {
                 return $this->searchBy($request, $response);
                 break;
             case 'search':
-            default:
                 return $this->search($request, $response);
+                break;
+            default:
+                return new Response(
+                    "Unsupported project action. Please try again.",
+                    Response::HTTP_BAD_REQUEST
+                );               
             break;                
         }
     }

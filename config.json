@@ -25,18 +25,18 @@
 		"project": [
 			{
 				"key": "project-metadata-search",
-				"name": "Metadata Search",
+				"name": "Study Metadata Search",
 				"icon": "fas fa-search",
-				"url": "index.php?entity=project"
+				"url": "project.php"
 			}								
 		],
 		"control-center": [
 			{
 				"key": "control-center-metadata-search",
-				"name": "Metadata Search",
+				"name": "Metadata Search Configuration",
 				"icon": "fas fa-search",
-				"url": "index.php?entity=control-center"
-			}	
+				"url": "control-center.php"
+			}			
 		 ]
 	},
 

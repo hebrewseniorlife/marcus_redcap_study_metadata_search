@@ -1,3 +1,4 @@
+<!-- Browse Tree ---->
 <div class="row mb-3">
     <div class="col-md-10">
         <code>* Double click icon to automatically search by form</code>
@@ -9,9 +10,6 @@
         <div id="tree"></div>
     </div>
 </div>
-
-
-
 <script>
 MetadataSearchBrowser = {
     createProjectTree: function (projects) {
@@ -71,7 +69,7 @@ MetadataSearchBrowser = {
 $( document ).ready(function() {
     $("#browse-search-tab").click(function(){
         $.ajax({
-            url: "{{ paths.api | raw }}&entity=project&action=list-forms",
+            url: "{{ paths.project | raw }}&action=list-forms",
             success: function(data){
                 MetadataSearchBrowser.renderTree('#tree', data.projects, "{{paths.search_by | raw}}");
             },

@@ -70,7 +70,7 @@ class ControlCenterController extends AppController {
             "stats"      => $searchService->getStats(),
             "cron"       => $cron,
             "paths"      => array(
-                "reindex"  => $this->module->getUrl('index.php')."&entity=control-center&action=reindex"
+                "reindex"  => $this->module->getUrl('control-center.php')."&action=reindex"
             )
         ]);
         
