@@ -1,8 +1,6 @@
 <?php
 
 use League\Csv\Writer;
-use Arrayy\Arrayy as A;
-use Models\Document;
 
 class DocumentHelper {        
     /**
@@ -37,7 +35,8 @@ class DocumentHelper {
      * @param  mixed $documents
      * @return string
      */
-    static function writeMetadataToCsv(array $documents) : string {
+    static function writeMetadataToCsv(array $documents) : string 
+    {
         if (count($documents) == 0)
         {
             return "";
@@ -56,7 +55,30 @@ class DocumentHelper {
           
         return $csv->getContent();   
     }
-    
+        
+    /**
+     * writeMetadataToZip
+     *
+     * @param  mixed $documents
+     * @return string
+     */
+    static function writeMetadataToZip(array $documents) : string
+    {
+        $tempFilename = constant("APP_PATH_TEMP").'study_metadata_cart_'.time().'zip';
+
+        $zip = new ZipArchive();
+
+        if ($zip->open($tempFilename, ZipArchive::CREATE)!==TRUE) {
+            throw new Exception("Cannot create zip file in REDCap temp folder. Path was ".$tempFilename);
+        }
+        
+        $zip->addFromString('instrument.csv', DocumentHelper::writeMetadataToCsv($documents));
+        $zip->addFromString('OriginID.txt', constant('SERVER_NAME'));
+        $zip->close();
+
+        return $tempFilename;
+    }
+
     /**
      * flatten
      *

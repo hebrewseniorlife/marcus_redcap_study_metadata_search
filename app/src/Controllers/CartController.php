@@ -9,6 +9,7 @@ use SearchEngineService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse as BinaryFileResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils as HeaderUtils;
 
 class CartController extends ApiController{    
@@ -181,6 +182,14 @@ class CartController extends ApiController{
                 $contentType    = 'application/json';
                 $content        = json_encode($documents);
                 $filename       = 'study_metdata_cart_'.$exportDate.'.json';
+                break;
+            case 'zip':
+                $contentType    = 'application/zip';
+                $content        = null;
+                $filename       = 'study_metdata_cart_'.$exportDate.'.zip';
+
+                $zipFilePath    = DocumentHelper::writeMetadataToZip($documents);
+                $response       = new BinaryFileResponse($zipFilePath);
                 break;
             case 'metadata':
             default:
