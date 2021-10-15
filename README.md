@@ -2,12 +2,12 @@
 ## Purpose
 The purpose of the REDCap module is to provide search functionality of metdata (data dictionaries) across projects or currated libraries of forms. Once installed and configured at the system level, individual projects may opt-in to share all or some of the metadata associated with project forms.  The search engine indexes the metadata (field name, label, notes, etc.) and makes these data available through a simple search bar.  
 
-All authenticated users, with project-level access, may use the search interface.  Users may select individual fields or whole forms and add them to a shopping cart.  The cart may be downloaded in CSV, JSON or REDCap data dictionary-template format.  The downloaded dictionary(s) may then be used to build new project databases.  
+All authenticated REDCap users, with project-level access, may use the search interface.  Users may select individual fields or whole forms and add them to a shopping cart.  The cart may be downloaded in REDCap data dictionary-template format.  The downloaded dictionary(s) may then be used to build new project databases.  
 ### Developer Information
 Please contact the Director of Research Informatics (ifar-informatics@hsl.harvard.edu) at the Marcus Institute for more information.  
 ## Requirements / Caveats
 Currently, the external module uses the Php-Search Engine (https://github.com/VincentFoulon80/php-search), which provides basic search engine capabilities, which requires minimal local server configuration.  
-+ Local files system access is required for storing the search engine index and document cache. 
++ Local file system access is required for storing the search engine index and document cache. 
 ### Caveats
 + Search engine optimization is not currently supported. Support for custom weighted indexes or additional search attributes may be added in future releases
 + Custom or external engines (AWS CloudSearch, TnTSearch, Elastic, etc.) are not supported
@@ -24,7 +24,7 @@ The following configuration settings must be set by the REDCap administrator in 
 | Automatic Reindex/Rebuild (autorebuild-enabled) | Allows REDCap to automatically reindex all opt-in projects using the built in CRON system | |
 | Automatic Reindex CRON Pattern (autorebuild-pattern) | Any valid CRON pattern | (see https://github.com/dragonmantank/cron-expression) |
 
-### API Keys
+#### API Keys
 API keys are optional. See Search API below when specified.
 | Property | Description | Example |
 |----------|----------------------------------|--------|
