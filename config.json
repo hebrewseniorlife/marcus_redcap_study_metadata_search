@@ -7,7 +7,7 @@
 
 	"documentation": "README.md",
 
-	"framework-version" : 5,
+	"framework-version" : 7,
 
 	"authors": [
 		{
@@ -176,7 +176,7 @@
 	"compatibility": {
 		"php-version-min": "7.2.0",
 		"php-version-max": "",
-		"redcap-version-min": "10.0.1",
+		"redcap-version-min": "10.8.0",
 		"redcap-version-max": ""
 	}
 }
