@@ -67,7 +67,7 @@ class CronService extends AbstractService {
 		$message = CronService::CRON_START_MESSAGE;
 		$sql 	 = "select max(timestamp) where message = '{$message}'";
 
-		$results = $this->module->queryLogs($sql);
+		$results = $this->module->queryLogs($sql, []);
 		if ($results && $results->num_rows > 0)
 		{
 			list($lastStartTime) = $results->fetch_row();
@@ -126,7 +126,7 @@ class CronService extends AbstractService {
 		$sql = "select log_id, timestamp, user, ip, message order by timestamp desc limit 100";
 
 		$logs 	 = [];
-		$results = $this->module->queryLogs($sql);
+		$results = $this->module->queryLogs($sql, []);
 		if ($results && $results->num_rows > 0)
 		{
 			$logs = $results->fetch_all(MYSQLI_ASSOC);
