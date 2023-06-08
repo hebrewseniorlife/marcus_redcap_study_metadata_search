@@ -1,6 +1,6 @@
 # Marcus Institute - Study Metadata Search - REDCap External Module
 ## Purpose
-The purpose of the REDCap module is to provide search functionality of metdata (data dictionaries) across projects or currated libraries of forms. Once installed and configured at the system level, individual projects may opt-in to share all or some of the metadata associated with project forms.  The search engine indexes the metadata (field name, label, notes, etc.) and makes these data available through a simple search bar.  
+The purpose of the REDCap module is to provide search functionality of metadata (data dictionaries) across projects or curated libraries of forms. Once installed and configured at the system level, individual projects may opt-in to share all or some of the metadata associated with project forms.  The search engine indexes the metadata (field name, label, notes, etc.) and makes these data available through a simple search bar.  
 
 All authenticated REDCap users, with project-level access, may use the search interface.  Users may select individual fields or whole forms and add them to a shopping cart.  The cart may be downloaded in REDCap data dictionary-template format.  The downloaded dictionary(s) may then be used to build new project databases.  
 ### Developer Information
