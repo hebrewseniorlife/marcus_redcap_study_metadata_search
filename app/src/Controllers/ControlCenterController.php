@@ -110,7 +110,7 @@ class ControlCenterController extends AppController {
             "stats"      => $searchService->getStats(),
             "log"        => $log,
             "paths"      => array(
-                "view"  => $this->module->getUrl('index.php')."&entity=control-center&action=view"
+                "view"  => $this->module->getUrl('control-center.php')."&action=view"
             )
         ]);
         $content = $this->template->render("@control-center/reindex.twig", $context);
