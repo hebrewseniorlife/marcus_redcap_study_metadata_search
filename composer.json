@@ -1,13 +1,13 @@
 {
     "name": "marcus/marcus_study_metadata_search",
     "description": "REDCap external module for searching study metadata",
-    "version" : "1.2",
+    "version" : "1.2.1",
     "require": {
-        "twig/twig": "^3.3",
+        "twig/twig": "^3.6",
         "symfony/http-foundation": "^5.3",
         "monolog/monolog": "^2.2",
         "vfou/php-search": "^1.1",
-        "twig/string-extra": "^3.3",
+        "twig/string-extra": "^3.6",
         "psr/log": "^1.1",
         "league/csv": "^9.6",
         "dragonmantank/cron-expression": "^3.1",
