@@ -30,11 +30,16 @@ abstract class AbstractService
     function __construct($module, LoggerInterface $logger = null)
     {
         $this->module = $module;
-        
+
         if ($logger === null)
         {
             $logger = Log::getLogger();
-            $logger->pushHandler(new ExternalModuleLogHandler($module));
+
+            $logLevel = $this->module->getSystemSetting('log-level') ?? 0;
+            if ($logLevel > 0)
+            {
+                $logger->pushHandler(new ExternalModuleLogHandler($this->module, $logLevel));  
+            }
         }
 
         $this->setLogger($logger);

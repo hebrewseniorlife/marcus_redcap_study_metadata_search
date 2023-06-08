@@ -34,10 +34,16 @@ class ExternalModuleLogHandler extends AbstractProcessingHandler
 
     protected function write(array $record): void
     {
-        $parameters = array_merge($record['context'], [
-            'level' => $record['level']
-        ]);
+        $request_time = isset($_SERVER['REQUEST_TIME_FLOAT']) ? $_SERVER['REQUEST_TIME_FLOAT'] : "";
         
-        $this->module->log($record['formatted'], $parameters);
+        $parameters = array_merge($record['context'], [
+            'level' => $record['level'],
+            'request_time' => $request_time
+        ]);
+
+        if (strlen($record['formatted']) > 0)
+        {
+            $this->module->log($record['formatted'], $parameters);
+        }
     }
 }

@@ -71,6 +71,26 @@
 
 	"system-settings": [
 		{
+			"key": "log-level",
+			"name": "Log Level",
+			"required": true,
+			"type": "dropdown",
+			"choices" : [
+				{
+					"name" : "OFF",
+					"value" : 0
+				},
+				{
+					"name" : "INFO",
+					"value" : 200
+				},
+				{
+					"name" : "DEBUG",
+					"value" : 100
+				}
+			]
+		},		
+		{
 			"key": "search-provider",
 			"name": "Search Engine Provider",
 			"required": true,

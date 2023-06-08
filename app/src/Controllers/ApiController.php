@@ -23,12 +23,19 @@ class ApiController {
      */
     function __construct(object $module, LoggerInterface $logger = null)
     {
-        $this->module = $module;
+        $this->module = $module; 
 
         if ($logger === null)
         {
             $logger = Log::getLogger();
-            $logger->pushHandler(new ExternalModuleLogHandler($module, Logger::INFO));
+
+            $logLevel = $this->module->getSystemSetting('log-level') ?? 0;
+        
+            // If logging is not turned off (LEVEL != 0)
+            if ($logLevel > 0)
+            {
+                $logger->pushHandler(new ExternalModuleLogHandler($this->module, $logLevel));  
+            }
         }
 
         $this->logger = $logger;

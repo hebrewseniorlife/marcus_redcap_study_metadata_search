@@ -5,7 +5,7 @@ namespace Controllers;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use TemplateEngine as TemplateEngine;
-use Monolog\Logger;
+use Logging\Log as Log;
 use Logging\ExternalModuleLogHandler;
 
 /**
@@ -30,10 +30,17 @@ class AppController {
             'root'              => $module->getModulePath()."app/resources/templates/",
             'control-center'    => $module->getModulePath()."app/resources/templates/control-center",
             'project'           => $module->getModulePath()."app/resources/templates/project"
-        ]);    
+        ]);  
 
-        $this->logger = \Logging\Log::getLogger();  
-        $this->logger->pushHandler(new ExternalModuleLogHandler($this->module, Logger::INFO));  
+        $this->logger = Log::getLogger();  
+
+        $logLevel = $this->module->getSystemSetting('log-level') ?? 0;
+
+        // If logging is not turned off (LEVEL != 0)
+        if ($logLevel > 0)
+        {
+            $this->logger->pushHandler(new ExternalModuleLogHandler($this->module, $logLevel));  
+        }
     }
     
     /**

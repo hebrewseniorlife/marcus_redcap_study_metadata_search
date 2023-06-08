@@ -5,12 +5,12 @@ namespace Logging;
 use Monolog\Logger as Logger;
 use Monolog\Handler\StreamHandler as StreamHandler;
 use Monolog\Handler\BufferHandler as BufferHandler;
+use Monolog\Handler\NullHandler as NullHandler;
 use Monolog\Formatter\LineFormatter as LineFormatter;
-use Monolog\Handler\AbstractProcessingHandler;
 
 class Log {    
     const DATETIME_FOMAT = "Y-m-d H:i:s";
-    const DEFAULT_LEVEL  = Logger::DEBUG;
+    const DEFAULT_LEVEL  = Logger::INFO;
     const DEFAULT_FORMAT = '[%datetime%] [%channel%] [%level_name%] %message%'.PHP_EOL;
     const DEFAULT_STREAM = 'php://memory';
     const DEFAULT_CHANNEL = 'marcus_redcap';
@@ -28,10 +28,11 @@ class Log {
 	 * @param  mixed $useBuffer
 	 * @return Logger
 	 */
-	static public function getLogger($stream = Log::DEFAULT_STREAM) : Logger
+	static public function getLogger($stream = Log::DEFAULT_STREAM, $level = Log::DEFAULT_LEVEL) : Logger
 	{
+        // If the class instance does not already have a loggger then create a new one using the stream and level provided.
 		if (!self::$instance) {
-			self::createLogger($stream);
+			self::createLogger($stream, $level);
         }
 
 		return self::$instance;
@@ -43,13 +44,24 @@ class Log {
      * @param  mixed $useBuffer
      * @return void
      */
-    public static function createLogger($stream = Log::DEFAULT_STREAM)
+    public static function createLogger($stream = Log::DEFAULT_STREAM, $level = Log::DEFAULT_LEVEL, $format = Log::DEFAULT_FORMAT, $useBuffer = false)
     {
-        $handler = Log::createStreamHandler($stream);
-       
+        // If the stream is explicitly null then create a null handler
+        if ($stream === null)
+        {
+            $handler = new NullHandler($level);
+        }
+        else
+        {
+            // Otherwise, create a stream handler based on the basic details (level, format, etc.)
+            $handler = Log::createStreamHandler($stream, $level, $format, $useBuffer);
+        }
+
+        // Create a new Monolog and give it the handler from above
         $logger = new Logger(Log::DEFAULT_CHANNEL);
         $logger->pushHandler($handler);
-       
+
+        // Assign the Monolog to the instance of the class
 		self::$instance = $logger;
     }
     
@@ -86,6 +98,23 @@ class Log {
     }
     
     /**
+     * getStreamContents
+     *
+     * @return string
+     */
+    public static function getStreamContents($stream = Log::DEFAULT_STREAM): string
+    {
+        $handler = \Logging\Log::getStreamHandler($stream);
+
+        $contents = "";
+        if ($handler != null) {
+            $contents = stream_get_contents($handler->getStream(), -1, 0);
+        }
+
+        return $contents;
+    }
+
+    /**
      * createStreamHandler
      *
      * @param  mixed $stream
@@ -94,17 +123,22 @@ class Log {
      * @param  mixed $format
      * @return StreamHandler
      */
-    public static function createStreamHandler($stream, $useBuffer = false, $level = Log::DEFAULT_LEVEL, $format = Log::DEFAULT_FORMAT) : StreamHandler{
+    public static function createStreamHandler($stream, $level = Log::DEFAULT_LEVEL, $format = Log::DEFAULT_FORMAT, $useBuffer = false) : StreamHandler{
+        // Create a stream handler 
+        $stream = new StreamHandler($stream, $level);
+
         // Create a new line formatter based on defaults
         $formatter = new LineFormatter($format, Log::DATETIME_FOMAT);
         $formatter->ignoreEmptyContextAndExtra(true);
         $formatter->allowInlineLineBreaks(true);
-
-        // Create a stream handler and apply the formatter
-        $stream = new StreamHandler($stream, $level);
+        
+        // Apply the formatter        
         $stream->setFormatter($formatter);
 
+        // Assign the handler
         $handler = $stream;
+
+        // But, if a buffer is required then default to a debugging handler (NOTE: BufferHandler is stream wrapper)
         if ($useBuffer === true)
         {
             $handler = new BufferHandler($stream, Logger::DEBUG);

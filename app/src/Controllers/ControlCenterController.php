@@ -95,14 +95,8 @@ class ControlCenterController extends AppController {
 
         $projects = $projectService->getProjects();
         $searchService->updateAll($projects);
-
-        $handler = \Logging\Log::getStreamHandler();
         
-        $log = "";
-        if ($handler != null)
-        {
-            $log = stream_get_contents($handler->getStream(), -1, 0);
-        }
+        $log = \Logging\Log::getStreamContents();
 
         $context = $this->createContext("System Reindex", [
             "engine"     => $searchService->getSearchEngineSettings(),
