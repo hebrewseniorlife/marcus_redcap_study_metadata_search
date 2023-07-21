@@ -56,8 +56,8 @@ MetadataSearchBrowser = {
             $(element).data("search_by_url", searchByUrl);
 
             $(element).dblclick(function(event){
-                let searchByUrl = $(event.target).data("search_by_url");
-                let url         = searchByUrl + "&field=form_name&value=" + event.target.id;
+                let searchByUrl = $(event.currentTarget).data("search_by_url");
+                let url         = searchByUrl + "&field=form_name&value=" + event.currentTarget.id;
                 window.location.href = url;
             });;
         });
