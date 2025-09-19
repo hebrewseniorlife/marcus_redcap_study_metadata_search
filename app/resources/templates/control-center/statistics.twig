@@ -8,7 +8,7 @@
           <tbody>          
           {% for prop, value in stats %}
             <tr>
-              <th width="50">{{ prop }}</th>
+              <th width="50">{{ prop }}:</th>
               <td>
               {% if value is iterable %}
               <div id="{{prop}}-accordion">
