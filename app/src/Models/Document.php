@@ -9,6 +9,13 @@ class Document {
      * @var mixed
      */
     public $id;
+
+    /**
+     * key
+     *
+     * @var string
+     */
+    public $key;
         
     /**
      * name
