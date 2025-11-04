@@ -4,6 +4,7 @@ namespace Controllers;
 
 use ProjectService;
 use SearchEngineService;
+use SearchEngineFactory;
 use CronService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
@@ -32,8 +33,11 @@ class ControlCenterController extends AppController {
      */
     function handle(Request $request, Response $response) : Response {
         switch($request->get("action")){
-            case 'reindex':
-                return $this->reindex($request, $response);
+            case 'index':
+                return $this->index($request, $response);
+            break;
+            case 'purge':
+                return $this->purge($request, $response);
             break;
             case 'view':
             default:
@@ -65,12 +69,13 @@ class ControlCenterController extends AppController {
         }
 
         $context = $this->createContext("System View", [
-            "engine"     => $searchService->getSearchEngineSettings(),
+            "engine"     => $searchService->getProvider(),
             "projects"   => $projects,
             "stats"      => $searchService->getStats(),
             "cron"       => $cron,
             "paths"      => array(
-                "reindex"  => $this->module->getUrl('control-center.php')."&action=reindex"
+                "index"  => $this->module->getUrl('control-center.php')."&action=index",
+                "purge"  => $this->module->getUrl('control-center.php')."&action=purge"
             )
         ]);
         
@@ -85,21 +90,19 @@ class ControlCenterController extends AppController {
         return $response;
     }
 
-    function reindex(Request $request, Response $response) : Response { 
-        $this->logger->info("Manual reindex requested from Control Center.");
+    function index(Request $request, Response $response) : Response { 
+        $this->logger->info("Manual index requested from Control Center.");
         
-        $searchService = new SearchEngineService($this->module, $this->logger);
-        $searchService->destroy();
-
         $projectService = new ProjectService($this->module, $this->logger);
-
         $projects = $projectService->getProjects();
+
+        $searchService = new SearchEngineService($this->module, $this->logger);
         $searchService->updateAll($projects);
         
         $log = \Logging\Log::getStreamContents();
 
         $context = $this->createContext("System Reindex", [
-            "engine"     => $searchService->getSearchEngineSettings(),
+            "engine"     => $searchService->getProvider(),
             "projects"   => $projects,
             "stats"      => $searchService->getStats(),
             "log"        => $log,
@@ -107,7 +110,7 @@ class ControlCenterController extends AppController {
                 "view"  => $this->module->getUrl('control-center.php')."&action=view"
             )
         ]);
-        $content = $this->template->render("@control-center/reindex.twig", $context);
+        $content = $this->template->render("@control-center/index.twig", $context);
 
         $response = new Response(
             $content,
@@ -118,4 +121,33 @@ class ControlCenterController extends AppController {
         return $response;
 
     }
+
+    function purge(Request $request, Response $response) : Response { 
+        $this->logger->info("Manual purge requested from Control Center.");
+
+        $searchService = new SearchEngineService($this->module, $this->logger);
+        $searchService->purgeAll();
+        
+        $log = \Logging\Log::getStreamContents();
+
+        $context = $this->createContext("System Purge (All)", [
+            "engine"     => $searchService->getProvider(),
+            "projects"   => [],
+            "stats"      => $searchService->getStats(),
+            "log"        => $log,
+            "paths"      => array(
+                "view"  => $this->module->getUrl('control-center.php')."&action=view"
+            )
+        ]);
+        $content = $this->template->render("@control-center/purge.twig", $context);
+
+        $response = new Response(
+            $content,
+            Response::HTTP_OK,
+            [self::REDCAP_SCOPE_HEADER => 'control-center']
+        );
+
+        return $response;
+
+    }    
 }

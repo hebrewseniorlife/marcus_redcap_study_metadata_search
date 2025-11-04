@@ -126,7 +126,7 @@ class DocumentHelper {
         $order = 1;
         foreach($documents as $key => $value)
         {
-            $documents[$key][$orderFieldName] = $order++; 
+            $documents[$key]->{$orderFieldName} = $order++; 
         }
     }
 

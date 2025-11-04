@@ -110,6 +110,7 @@ class CartController extends ApiController{
      */
     function getAll(Request $request, Response $response) : Response {
         $searchEngine = new SearchEngineService($this->module, $this->logger);
+
         $documents = $searchEngine->getDocuments($this->cart->getAll());
         
         DocumentHelper::setFieldOrder($documents);

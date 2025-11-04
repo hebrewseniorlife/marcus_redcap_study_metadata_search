@@ -3,6 +3,7 @@
 namespace Logging;
 
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Formatter\LineFormatter;
 
@@ -32,7 +33,7 @@ class ExternalModuleLogHandler extends AbstractProcessingHandler
         $this->setFormatter($formatter);
     }
 
-    protected function write(array $record): void
+    protected function write(LogRecord $record): void
     {
         $request_time = isset($_SERVER['REQUEST_TIME_FLOAT']) ? $_SERVER['REQUEST_TIME_FLOAT'] : "";
         

@@ -181,9 +181,10 @@ class ProjectService extends AbstractService {
      */
     function createDocument(int $pid, string $title, array $metadata) : Document {
         $document = new Document();
+        $key = join("__",array($pid, $metadata["form_name"], $metadata["field_name"]));
 
-        $document->id          = join("__",array($pid, $metadata["form_name"], $metadata["field_name"]));
-        $document->entity      = "field";
+        $document->key          = $key;
+        $document->entity       = "field";
         $document->name         = $metadata["field_name"];
         $document->label        = $metadata["field_label"];
         $document->note         = $metadata["field_note"];

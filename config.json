@@ -91,17 +91,27 @@
 			]
 		},		
 		{
-			"key": "search-provider",
+			"key": "search-engine-provider",
 			"name": "Search Engine Provider",
 			"required": true,
 			"type": "dropdown",
 			"choices" : [
 				{
-					"name" : "Php Search Engine",
-					"value" : "PhpSearchEngine"
+					"name" : "TnTSearch Engine",
+					"value" : "TNTSearchEngine"
+				},
+				{
+					"name" : "Elastic Search Engine",
+					"value" : "ElasticSearchEngine"
 				}
 			]
-		},		
+		},
+		{
+			"key": "search-engine-config",
+			"name": "Search Engine Configuration",
+			"required": true,
+			"type": "json"
+		},
 		{
 			"key": "temp-folder",
 			"name": "Temp Folder Location",
@@ -194,9 +204,9 @@
 	],
 
 	"compatibility": {
-		"php-version-min": "7.2.0",
+		"php-version-min": "8.0.0",
 		"php-version-max": "",
-		"redcap-version-min": "10.8.0",
+		"redcap-version-min": "15.0.0",
 		"redcap-version-max": ""
 	}
 }

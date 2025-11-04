@@ -103,7 +103,7 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 			{
 				// Create the search engine service, and distory the current index
 				$searchService = new SearchEngineService($this, $logger);
-				$searchService->destroy();
+				$searchService->purgeAll();
 
 				// Get all updated projects.
 				$projectService = new ProjectService($this, $logger);

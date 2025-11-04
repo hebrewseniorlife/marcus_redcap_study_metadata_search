@@ -7,9 +7,9 @@
         <table class="table">
           <tr>
             <th>Provider:</th>
-            <td>{{ engine.providerName }}</td>
+            <td>{{ engine.name }}</td>
           </tr>
-          {% for key, setting in engine.providerSettings %}
+          {% for key, setting in engine.settings %}
             <tr>
               <th>{{ key }}:</th>
               <td>{{ setting }}</td>

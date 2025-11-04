@@ -1,11 +1,19 @@
 <?php
 
-use Models\SearchEngineSettings as SearchEngineSettings;
-use SeachEngineFactory as SeachEngineFactory;
-use ISearchEngine;
-use Models\Project;
-use Psr\Log\LoggerInterface;
 
+use Models\SearchEngineProvider as SearchEngineProvider;
+use SearchEngines\ISearchEngine;
+use Models\Project;
+use Models\Document as Document;
+use Models\SearchEngineResult as SearchEngineResult;
+use Psr\Log\LoggerInterface;
+use SettingsHelper as SettingsHelper;
+use DocumentRepository as DocumentRepository;
+use SearchEngineFactory as SearchEngineFactory;
+
+/**
+ * SearchEngineService
+ */
 class SearchEngineService extends AbstractService {       
     /**
      * engine
@@ -13,6 +21,20 @@ class SearchEngineService extends AbstractService {
      * @var ISearchEngine
      */
     protected $engine;
+
+    /**
+     * repository
+     *
+     * @var DocumentRepository
+     */
+    protected $repository;
+
+    /**
+     * provider
+     *
+     * @var SearchEngineProvider
+     */
+    protected $provider;
     
     /**
      * __construct
@@ -23,48 +45,23 @@ class SearchEngineService extends AbstractService {
     function __construct($module, LoggerInterface $logger)
     {
         parent::__construct($module, $logger);
-        
-        $this->engine = self::createSearchEngine($this->getSearchEngineSettings(), $this->logger);
+
+        $this->provider = SearchEngineFactory::createProvder($this->module);
+        $this->engine = SearchEngineFactory::createSearchEngine($this->provider, $this->logger);
+
+        $folderPath = SettingsHelper::getTempFolderPath($this->module);
+        $this->repository = new DocumentRepository($this->module, $this->logger, $folderPath);
     }
     
     /**
-     * getSearchEngineSettings
+     * getProvider
      *
-     * @return SearchEngineSettings
+     * @return SearchEngineProvider
      */
-    function getSearchEngineSettings() : SearchEngineSettings 
-    {
-        $searchProviderName = $this->module->getSystemSetting("search-provider");
-        if (strlen($searchProviderName) === 0){
-            $searchProviderName = 'PhpSearchEngine';
-        }
-
-        $tempFolder = $this->module->getSystemSetting("temp-folder");
-        switch($tempFolder){
-            case 'custom' :
-                $customFolderPath   = $this->module->getSystemSetting("custom-temp-folder");
-                $tempFolderPath     = realpath($customFolderPath); // May need to be upgraded in future version...
-                break;
-            case 'system':
-                $tempFolderPath = sys_get_temp_dir();
-                break;
-            case 'redcap':
-            default:
-                $tempFolderPath = constant("APP_PATH_TEMP");
-                break;
-        }
-
-        if (!is_dir($tempFolderPath))
-        {
-            throw new Exception("Temp folder ($tempFolderPath) is not a directory. See system-level module configuration.");
-        }        
-
-        $settings = new SearchEngineSettings($searchProviderName);
-        $settings->providerSettings["temp_folder"] = $tempFolderPath;
-
-        return $settings;
+    function getProvider() : SearchEngineProvider {
+        return $this->provider;
     }
-    
+
     /**
      * updateAll
      *
@@ -74,15 +71,17 @@ class SearchEngineService extends AbstractService {
     function updateAll(array $projects = [])
     {
         $count = count($projects);
-        $this->logger->warning("Updating all projects (n={$count}). Rebuilding search engine index.");
-        
-        $this->engine->rebuild();
+        $this->logger->warning("Search Engine Service: Updating all projects (n={$count}). Rebuilding search engine index.");
         
         foreach($projects as $project)
         {
             if ($project->enabled === true)
             {
+                $this->logger->info("Search Engine Service: Indexing Project: {$project->project_id} - {$project->title}");
                 $this->update($project);
+            }
+            else{
+                $this->logger->info("Search Engine Service: Skipping disabled Project: {$project->project_id} - {$project->title}");
             }
         }
     }
@@ -98,11 +97,25 @@ class SearchEngineService extends AbstractService {
         if ($project->enabled !== true){
             throw new Exception("Project is not enabled and may not be indexed.");
         }
-
-        foreach($project->documents as $document)
+        
+        // Must insert into repository first to get IDs.
+        foreach($project->documents as &$document)
         {
-            $this->engine->updateDocument((array) $document); 
+            $this->repository->upsert($document);
         }
+
+        unset($document);
+
+        // Insert documents into search engine.
+        for($i = 0; $i < count($project->documents); $i++)
+        {
+            $document = $project->documents[$i];
+            $this->logger->debug("Indexing document: {$document->id} - {$document->key}");
+            
+            $this->engine->insertDocument($document);
+        }
+
+        unset($document);
     }
     
     /**
@@ -110,13 +123,21 @@ class SearchEngineService extends AbstractService {
      *
      * @param  string $phrase
      * @param  array $options
-     * @return array
+     * @return SearchEngineResult
      */
-    function search(string $phrase, array $options = []) : array
+    function search(string $phrase, array $options = []) : SearchEngineResult
     {
-        $this->logger->info("Search requested (see context).", ["phrase" => $phrase]);
+        $this->logger->info("Search Engine Service: Search requested (see context).", ["phrase" => $phrase]);
 
-        return $this->engine->search($phrase, $options);
+        $results = $this->engine->search($phrase, $options);
+        $this->logger->debug("Search Engine Service: Search returned ".count($results)." results.");
+
+        $documents = [];
+        if (count($results["ids"]) > 0){
+            $documents = $this->getDocuments($results["ids"]);
+        }
+
+        return new SearchEngineResult($documents);
     }
     
     /**
@@ -124,13 +145,22 @@ class SearchEngineService extends AbstractService {
      *
      * @param  mixed $attribute
      * @param  mixed $value
-     * @return array
+     * @return SearchEngineResult
      */
-    function searchBy(string $field, string $value) : array
+    function searchBy(string $field, string $value) : SearchEngineResult
     {
-        $this->logger->info("Search By requested (see context).", ["field" => $field, "value" => $value]);
+        $this->logger->info("Search Engine Service: Search By requested (see context).", ["field" => $field, "value" => $value]);
+        
+        $results = $this->engine->searchBy($field, $value);
+        
+        $this->logger->debug("Search Engine Service: Search returned ".count($results)." results.");
 
-        return $this->engine->searchBy($field, $value);
+        $documents = [];
+        if (count($results["ids"]) > 0){
+            $documents = $this->getDocuments($results["ids"]);
+        }
+        
+        return new SearchEngineResult($documents);
     }
     
     /**
@@ -139,7 +169,15 @@ class SearchEngineService extends AbstractService {
      * @return array
      */
     function getStats() : array{
-        return $this->engine->getStats();
+        $stats = [
+            "engine" => $this->engine->getStats(),
+            "repository" => [
+                "status" => "Repository operational",
+                "count" => $this->repository->count()
+            ]
+        ];
+
+        return $stats;
     }
         
     /**
@@ -148,8 +186,8 @@ class SearchEngineService extends AbstractService {
      * @param  mixed $id
      * @return void
      */
-    function getDocument(string $id) {
-        return $this->engine->getDocument($id);
+    function getDocument(string $id) : ?Document{
+        return $this->repository->find($id);
     }
     
     /**
@@ -170,48 +208,19 @@ class SearchEngineService extends AbstractService {
     }
        
     /**
-     * destroy
+     * rebuild
      *
      * @return void
      */
-    function destroy(){
-        // Get all documents;
-        $results = $this->engine->search("", []);
-
-        $documentCount = count($results["documents"]);
-        $this->logger->warning("Destroying search engine containing $documentCount.");
-
-        // For each of the documents, delete it from the index
-        foreach($results["documents"] as $key => $value){
-            $this->engine->deleteDocument($key);
-        }
-
-        // Rebuild the index, which will clear the cache and index...
-        $this->logger->warning("Rebuilding search engine.");
-        $this->engine->rebuild();
-    }
-
-    /**
-     * create
-     *
-     * @param  SearchEngineSettings $config
-     * @return ISearchEngine
-     */
-    static public function createSearchEngine(SearchEngineSettings $settings, LoggerInterface $logger) : ISearchEngine {
-        $provider = $settings->providerName;
+    function purgeAll() : void {
+        $this->logger->warning("Search Engine Service: Purging search engine and document repository.");
         
-        $logger->debug("Creating search engine using provider named: {$provider}.");
+        // Delete all documents from the existing repository.
+        $ids = $this->repository->deleteAll();
 
-        switch($provider){
-            case "PhpSearchEngine":
-                $searchEngine = new PhpSearchEngine();
-                break;
-            default:
-                throw new Exception("Search engine with provider name '{$provider}' is not supported.");
-        }
-        
-        $searchEngine->initialize($settings, $logger);
-        
-        return $searchEngine;
+        // Delete all documents from search engine.(if it exists)
+        foreach($ids as $id){
+            $this->engine->deleteDocument($id);
+        }   
     }
 }

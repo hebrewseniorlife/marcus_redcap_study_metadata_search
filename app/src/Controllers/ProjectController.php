@@ -5,6 +5,7 @@ namespace Controllers;
 use SearchEngineService;
 use CartService;
 use ProjectService;
+use Models\SearchEngineResult as SearchEngineResult;
 use Controllers\AppController;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
@@ -82,8 +83,8 @@ class ProjectController extends AppController {
      */
     function search(Request $request, Response $response) : Response { 
         $term = $request->get("term", "");
-        $results = [];
 
+        $results = new SearchEngineResult();
         if (strlen($term) > 0){
             $results = $this->searchEngine->search($term);
         }
@@ -123,7 +124,7 @@ class ProjectController extends AppController {
 
         $field  = $request->get("field", "");
         $value  = $request->get("value", "");  
-        $results = [];
+        $results = new SearchEngineResult();
         
         if (array_search($field, $fields) >= 0 && strlen($value) > 0){
             $results = $this->searchEngine->searchBy($field, $value);

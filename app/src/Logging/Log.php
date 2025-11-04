@@ -10,7 +10,7 @@ use Monolog\Formatter\LineFormatter as LineFormatter;
 
 class Log {    
     const DATETIME_FOMAT = "Y-m-d H:i:s";
-    const DEFAULT_LEVEL  = Logger::INFO;
+    const DEFAULT_LEVEL  = Logger::DEBUG;
     const DEFAULT_FORMAT = '[%datetime%] [%channel%] [%level_name%] %message%'.PHP_EOL;
     const DEFAULT_STREAM = 'php://memory';
     const DEFAULT_CHANNEL = 'marcus_redcap';
