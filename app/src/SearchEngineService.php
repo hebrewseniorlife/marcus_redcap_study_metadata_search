@@ -62,60 +62,118 @@ class SearchEngineService extends AbstractService {
         return $this->provider;
     }
 
+
     /**
-     * updateAll
+     * populateProjects
      *
      * @param  array $projects
      * @return void
      */
-    function updateAll(array $projects = [])
+    function populateProjects(array $projects = []) : void
     {
         $count = count($projects);
-        $this->logger->warning("Search Engine Service: Updating all projects (n={$count}). Rebuilding search engine index.");
+        $this->logger->info("Search Engine Service: Populating all projects (n={$count}).");
         
         foreach($projects as $project)
         {
-            if ($project->enabled === true)
-            {
-                $this->logger->info("Search Engine Service: Indexing Project: {$project->project_id} - {$project->title}");
-                $this->update($project);
-            }
-            else{
-                $this->logger->info("Search Engine Service: Skipping disabled Project: {$project->project_id} - {$project->title}");
-            }
+            $this->populateProject($project);
         }
     }
-    
+
     /**
-     * update
+     * populateByProject
      *
      * @param  Project $project
      * @return void
      */
-    function update(Project $project = null)
+    function populateProject(Project $project = null) : void
     {
         if ($project->enabled !== true){
-            throw new Exception("Project is not enabled and may not be indexed.");
-        }
+            $this->logger->info("Search Engine Service: Project: {$project->project_id} - {$project->title} is disabled. Skipping populate.");
+            return;
+        }   
         
-        // Must insert into repository first to get IDs.
-        foreach($project->documents as &$document)
+        $this->logger->info("Search Engine Service: Populating Project: {$project->project_id} - {$project->title}");
+        $this->pupulateDocuments($project->documents);
+    }
+
+    /**
+     * pupulateDocuments
+     *
+     * @param  array $documents
+     * @return void
+     */
+    function pupulateDocuments(array $documents = []) : void
+    {
+        $count = count($documents);
+        $this->logger->info("Search Engine Service: Populating all documents (n={$count}) in repository.");
+        
+        foreach($documents as &$document)
         {
+            $this->logger->debug("Search Engine Service: Populating Document: {$document->id} - {$document->key}");
             $this->repository->upsert($document);
         }
+    }
 
-        unset($document);
-
-        // Insert documents into search engine.
-        for($i = 0; $i < count($project->documents); $i++)
+    /**
+     * indexProjects
+     *
+     * @param  array $projects
+     * @return void
+     */
+    function indexProjects(array $projects = []) : void
+    {
+        $count = count($projects);
+        $this->logger->info("Search Engine Service: Indexing all projects (n={$count}).");
+        
+        foreach($projects as $project)
         {
-            $document = $project->documents[$i];
-            $this->logger->debug("Indexing document: {$document->id} - {$document->key}");
-            
+            $this->indexProject($project);
+        }
+    }
+
+    /**
+     * indexProject
+     *
+     * @param  Project $project
+     * @return void
+     */
+    function indexProject(Project $project = null) : void
+    {
+        if ($project->enabled !== true){
+            $this->logger->info("Search Engine Service: Project: {$project->project_id} - {$project->title} is disabled. Skipping index.");
+            return;
+        }   
+        
+        $this->logger->info("Search Engine Service: Indexing Project: {$project->project_id} - {$project->title}");
+        $this->indexDocuments($project->documents);
+    }
+
+    /**
+     * indexDocuments
+     *
+     * @param  array $documents
+     * @return void
+     */
+    function indexDocuments(array $documents = []) : void
+    {
+        $count = count($documents);
+        $this->logger->info("Search Engine Service: Indexing all documents (n={$count}). Rebuilding search engine index.");
+        
+        foreach($documents as $document)
+        {
+            $this->logger->debug("Search Engine Service: Indexing Document: {$document->id} - {$document->key}");
             $this->engine->insertDocument($document);
         }
+    }
 
-        unset($document);
+    /**
+     * getAllDocuments
+     *
+     * @return array
+     */
+    function getAllDocuments() : array {
+        return $this->repository->getAll();
     }
     
     /**

@@ -96,10 +96,11 @@ class DocumentRepository extends AbstractService {
      */
     public function upsert(Document $document): int
     {
+        // Get existing bean if it exists
         $bean = $this->getBean($document) ?? R::dispense(self::TYPE);
+        // Map domain object to bean (if any changes)
         $this->fromDomain($document, $bean);
-
-        $this->logger->debug("Document Repository: Inserting/Updating: ID={$bean->id}, Key={$bean->key}, Name={$bean->name}");
+        // Store the bean and update the document ID
         $document->id = (int) R::store($bean);
 
         return $document->id;
@@ -132,6 +133,21 @@ class DocumentRepository extends AbstractService {
     }
 
     /**
+     * Retrieves all documents from the repository.
+     *
+     * @return Document[] An array of Document instances.
+     */
+    public function getAll(): array
+    {
+        $beans = R::findAll(self::TYPE);
+        $documents = [];
+        foreach ($beans as $bean) {
+            $documents[] = $this->toDomain($bean);
+        }
+        return $documents;
+    }
+
+    /**
      * Finds and returns a Document by its unique key.
      *
      * @param string $key The unique key of the Document to find.
@@ -147,6 +163,21 @@ class DocumentRepository extends AbstractService {
         return $this->toDomain(array_values($beans)[0]);
     }
 
+    /**
+     * Finds and returns Documents by the project ID
+     *
+     * @param int $id The project_id of the project.
+     * @return Document|null The Document instance if found, or null if not found.
+     */
+    public function findByProject(int $id): ?Document
+    {
+        $beans = R::find(self::TYPE, ' project_id = ? ', [$id]);
+        if (count($beans) === 0) {
+            return null;
+        }
+        // Return the first match
+        return $this->toDomain(array_values($beans)[0]);
+    }
 
     /**
      * Retrieves an existing bean based on the provided Document's ID or key.

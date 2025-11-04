@@ -109,8 +109,11 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 				$projectService = new ProjectService($this, $logger);
 				$projects = $projectService->getProjects();
 
-				// Update the search service using the new documents
-				$searchService->updateAll($projects);
+				// Poplulate the document repository with the updated projects.
+				$searchService->populateProjects($projects);
+
+				// Index all projects.
+				$searchService->indexProjects($projects);
 
 				$message = "The search engine index has been rebuilt.";
 			}

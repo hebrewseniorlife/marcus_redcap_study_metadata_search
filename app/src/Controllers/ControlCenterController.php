@@ -33,6 +33,9 @@ class ControlCenterController extends AppController {
      */
     function handle(Request $request, Response $response) : Response {
         switch($request->get("action")){
+            case 'populate':
+                return $this->populate($request, $response);      
+            break;      
             case 'index':
                 return $this->index($request, $response);
             break;
@@ -75,7 +78,8 @@ class ControlCenterController extends AppController {
             "cron"       => $cron,
             "paths"      => array(
                 "index"  => $this->module->getUrl('control-center.php')."&action=index",
-                "purge"  => $this->module->getUrl('control-center.php')."&action=purge"
+                "purge"  => $this->module->getUrl('control-center.php')."&action=purge",
+                "populate"  => $this->module->getUrl('control-center.php')."&action=populate"
             )
         ]);
         
@@ -90,20 +94,49 @@ class ControlCenterController extends AppController {
         return $response;
     }
 
-    function index(Request $request, Response $response) : Response { 
-        $this->logger->info("Manual index requested from Control Center.");
+    function populate(Request $request, Response $response) : Response { 
+        $this->logger->info("Manual populate requested from Control Center.");
         
         $projectService = new ProjectService($this->module, $this->logger);
         $projects = $projectService->getProjects();
 
         $searchService = new SearchEngineService($this->module, $this->logger);
-        $searchService->updateAll($projects);
+        $searchService->populateProjects($projects);
         
         $log = \Logging\Log::getStreamContents();
 
-        $context = $this->createContext("System Reindex", [
+        $context = $this->createContext("System Poluate", [
             "engine"     => $searchService->getProvider(),
             "projects"   => $projects,
+            "stats"      => $searchService->getStats(),
+            "log"        => $log,
+            "paths"      => array(
+                "view"  => $this->module->getUrl('control-center.php')."&action=view"
+            )
+        ]);
+        $content = $this->template->render("@control-center/index.twig", $context);
+
+        $response = new Response(
+            $content,
+            Response::HTTP_OK,
+            [self::REDCAP_SCOPE_HEADER => 'control-center']
+        );
+
+        return $response;
+    }
+
+    function index(Request $request, Response $response) : Response { 
+        $this->logger->info("Manual index requested from Control Center.");
+
+        $searchService = new SearchEngineService($this->module, $this->logger);
+        $documents = $searchService->getAllDocuments();
+        $searchService->indexDocuments($documents);
+        
+        $log = \Logging\Log::getStreamContents();
+
+        $context = $this->createContext("System Index", [
+            "engine"     => $searchService->getProvider(),
+            "projects"   => [],
             "stats"      => $searchService->getStats(),
             "log"        => $log,
             "paths"      => array(
