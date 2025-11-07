@@ -24,6 +24,17 @@ class ProjectService extends AbstractService {
 
         return $projects;
     }
+
+    /**
+     * getProject
+     *
+     * @param  mixed $pid
+     * @param  bool $includChildren
+     * @return Project
+     */
+    function getProject(int $pid, bool $includChildren = true) : Project {
+        return $this->createProject($pid, $includChildren);
+    }
         
     /**
      * getDetails

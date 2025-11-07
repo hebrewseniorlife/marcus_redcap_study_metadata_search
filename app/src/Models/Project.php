@@ -20,11 +20,11 @@ class Project {
     public $title = "";    
     
     /**
-     * enable
+     * enabled
      *
      * @var boolean
      */
-    public $enable = true;
+    public $enabled = true;
     
     /**
      * documents
