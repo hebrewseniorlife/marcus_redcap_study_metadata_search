@@ -177,6 +177,16 @@ class SearchEngineService extends AbstractService {
     }
     
     /**
+     * getDocumentsByProject
+     *
+     * @param  int $project_id
+     * @return array
+     */
+    function getDocumentsByProject(int $project_id) : array {
+        return $this->repository->findByProject($project_id);
+    }
+
+    /**
      * search
      *
      * @param  string $phrase
@@ -207,17 +217,17 @@ class SearchEngineService extends AbstractService {
      */
     function searchBy(string $field, string $value) : SearchEngineResult
     {
-        $this->logger->info("Search Engine Service: Search By requested (see context).", ["field" => $field, "value" => $value]);
+        // $this->logger->info("Search Engine Service: Search By requested (see context).", ["field" => $field, "value" => $value]);      
+        // $results = $this->engine->searchBy($field, $value);
+        // $this->logger->debug("Search Engine Service: Search returned ".count($results)." results.");
+        // $documents = [];
+        // if (count($results["ids"]) > 0){
+        //     $documents = $this->getDocuments($results["ids"]);
+        // }
         
-        $results = $this->engine->searchBy($field, $value);
-        
-        $this->logger->debug("Search Engine Service: Search returned ".count($results)." results.");
+        $this->logger->info("Search Engine Service: Finding Documents By.", ["field" => $field, "value" => $value]);
+        $documents = $this->repository->findAllBy($field, $value);
 
-        $documents = [];
-        if (count($results["ids"]) > 0){
-            $documents = $this->getDocuments($results["ids"]);
-        }
-        
         return new SearchEngineResult($documents);
     }
     

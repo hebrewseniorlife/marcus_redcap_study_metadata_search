@@ -164,19 +164,42 @@ class DocumentRepository extends AbstractService {
     }
 
     /**
-     * Finds and returns Documents by the project ID
+     * Finds and returns Documents by their associated project ID.
      *
-     * @param int $id The project_id of the project.
-     * @return Document|null The Document instance if found, or null if not found.
+     * @param int $id The project ID associated with the Documents to find.
+     * @return Document[] An array of Document instances associated with the project ID.
      */
-    public function findByProject(int $id): ?Document
+    public function findByProject(int $id): array
     {
-        $beans = R::find(self::TYPE, ' project_id = ? ', [$id]);
-        if (count($beans) === 0) {
-            return null;
+        $beans = R::findAll(self::TYPE, ' project_id = ? ', [$id]);
+        $documents = [];
+        foreach ($beans as $bean) {
+            $documents[] = $this->toDomain($bean);
         }
-        // Return the first match
-        return $this->toDomain(array_values($beans)[0]);
+        return $documents;
+    }
+
+    /**
+     * Finds and returns Documents by a specified field and value.
+     *
+     * @param string $field The field name to search by (e.g., 'name', 'field_type', 'form_name', 'project_id').
+     * @param string $value The value to match for the specified field.
+     * @return Document[] An array of Document instances that match the specified field and value.
+     * @throws InvalidArgumentException If the specified field is not supported for searching.
+     */
+    public function findAllBy(string $field, string $value): array
+    {
+        $fields = ['name', 'field_type', 'form_name', 'project_id'];
+        if (!in_array($field, $fields)) {
+            throw new InvalidArgumentException("Field '$field' is not supported for searching.");
+        }
+
+        $beans = R::findAll(self::TYPE, " {$field} = ? ", [$value]);
+        $documents = [];
+        foreach ($beans as $bean) {
+            $documents[] = $this->toDomain($bean);
+        }
+        return $documents;
     }
 
     /**
