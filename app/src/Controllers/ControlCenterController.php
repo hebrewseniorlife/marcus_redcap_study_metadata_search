@@ -8,7 +8,7 @@ use SearchEngineFactory;
 use CronService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
-
+use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
 /**
  * ControlCenterController
  */
@@ -33,11 +33,11 @@ class ControlCenterController extends AppController {
      */
     function handle(Request $request, Response $response) : Response {
         switch($request->get("action")){
-            case 'populate':
-                return $this->populate($request, $response);      
-            break;      
-            case 'index':
-                return $this->index($request, $response);
+            case 'populate-project':
+                return $this->populateProject($request, $response);
+            break;
+            case 'index-project':
+                return $this->indexProject($request, $response);
             break;
             case 'purge':
                 return $this->purge($request, $response);
@@ -77,9 +77,9 @@ class ControlCenterController extends AppController {
             "stats"      => $searchService->getStats(),
             "cron"       => $cron,
             "paths"      => array(
-                "index"  => $this->module->getUrl('control-center.php')."&action=index",
                 "purge"  => $this->module->getUrl('control-center.php')."&action=purge",
-                "populate"  => $this->module->getUrl('control-center.php')."&action=populate"
+                "index_project" => $this->module->getUrl('control-center.php')."&action=index-project",
+                "populate_project" => $this->module->getUrl('control-center.php')."&action=populate-project"
             )
         ]);
         
@@ -94,67 +94,104 @@ class ControlCenterController extends AppController {
         return $response;
     }
 
-    function populate(Request $request, Response $response) : Response { 
-        $this->logger->info("Manual populate requested from Control Center.");
-        
+    /**
+     * populateProject
+     *
+     * @param  Request $request
+     * @param  Response $response
+     * @return Response
+     */
+    function populateProject(Request $request, Response $response) : Response { 
+        $project_id = $request->get("project_id", -1);
+        if ($project_id == -1){
+            return new JsonResponse(["message" => "No project ID provided."], 
+                Response::HTTP_BAD_REQUEST);       
+        }
+
+        $this->logger->info("Manual populate documents requested from Control Center.");
+
         $projectService = new ProjectService($this->module, $this->logger);
-        $projects = $projectService->getProjects();
+        $project = $projectService->getProject($project_id, true);
+
+        if ($project === null){
+            return new JsonResponse(["message" => "Project {$project_id} does not exist."], 
+                Response::HTTP_BAD_REQUEST);       
+        }
+
+        if ($project->enabled !== true){
+            return new JsonResponse(["message" => "Project {$project_id} is disabled. Cannot populate documents."], 
+                Response::HTTP_BAD_REQUEST);
+        }        
+
+        if (count($project->documents) == 0){
+            return new JsonResponse(["message" => "No documents found for project {$project_id}."], 
+                Response::HTTP_BAD_REQUEST);       
+        }
 
         $searchService = new SearchEngineService($this->module, $this->logger);
-        $searchService->populateProjects($projects);
-        
+        $searchService->pupulateDocuments($project->documents);
+
         $log = \Logging\Log::getStreamContents();
-
-        $context = $this->createContext("System Poluate", [
-            "engine"     => $searchService->getProvider(),
-            "projects"   => $projects,
-            "stats"      => $searchService->getStats(),
-            "log"        => $log,
-            "paths"      => array(
-                "view"  => $this->module->getUrl('control-center.php')."&action=view"
-            )
-        ]);
-        $content = $this->template->render("@control-center/index.twig", $context);
-
-        $response = new Response(
-            $content,
-            Response::HTTP_OK,
-            [self::REDCAP_SCOPE_HEADER => 'control-center']
-        );
-
-        return $response;
+        
+        return new JsonResponse([
+            "message" => "Document repository for project {$project_id} has been updated.",
+            "log" => $log
+        ]);       
     }
 
-    function index(Request $request, Response $response) : Response { 
-        $this->logger->info("Manual index requested from Control Center.");
+    /**
+     * indexProject
+     *
+     * @param  Request $request
+     * @param  Response $response
+     * @return Response
+     */
+    function indexProject(Request $request, Response $response) : Response { 
+        $project_id = $request->get("project_id", -1);
+        if ($project_id == -1){
+            return new JsonResponse(["message" => "No project ID provided."], 
+                Response::HTTP_BAD_REQUEST);       
+        }
+
+        $this->logger->info("Manual index documents requested from Control Center.");
+
+        $projectService = new ProjectService($this->module, $this->logger);
+        $project = $projectService->getProject($project_id, false);
+
+        if ($project === null){
+            return new JsonResponse(["message" => "Project {$project_id} does not exist."], 
+                Response::HTTP_BAD_REQUEST);       
+        }
+        
+        if ($project->enabled !== true){
+            return new JsonResponse(["message" => "Project {$project_id} is disabled. Cannot index documents."], 
+                Response::HTTP_BAD_REQUEST);
+        }
 
         $searchService = new SearchEngineService($this->module, $this->logger);
-        $documents = $searchService->getAllDocuments();
+        $documents = $searchService->getDocumentsByProject($project_id);
+
+        if (count($documents) == 0){
+            return new JsonResponse(["message" => "No documents found for project {$project_id}."], 
+                Response::HTTP_BAD_REQUEST);       
+        }
+
         $searchService->indexDocuments($documents);
-        
         $log = \Logging\Log::getStreamContents();
-
-        $context = $this->createContext("System Index", [
-            "engine"     => $searchService->getProvider(),
-            "projects"   => [],
-            "stats"      => $searchService->getStats(),
-            "log"        => $log,
-            "paths"      => array(
-                "view"  => $this->module->getUrl('control-center.php')."&action=view"
-            )
-        ]);
-        $content = $this->template->render("@control-center/index.twig", $context);
-
-        $response = new Response(
-            $content,
-            Response::HTTP_OK,
-            [self::REDCAP_SCOPE_HEADER => 'control-center']
-        );
-
-        return $response;
-
+        
+        return new JsonResponse([
+            "message" => "Search index for project {$project_id} has been updated.",
+            "log" => $log
+        ]);       
     }
 
+    /**
+     * purge
+     *
+     * @param  Request $request
+     * @param  Response $response
+     * @return Response
+     */
     function purge(Request $request, Response $response) : Response { 
         $this->logger->info("Manual purge requested from Control Center.");
 

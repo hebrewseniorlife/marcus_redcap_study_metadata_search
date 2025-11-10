@@ -11,8 +11,21 @@ $response = new Response();
 $controller = new Controllers\ControlCenterController($module);
 $response = $controller->handle($request, $response);
 
-require_once APP_PATH_DOCROOT . 'ControlCenter/header.php';
-echo $response->getContent();
-require_once APP_PATH_DOCROOT . 'ControlCenter/footer.php';
+$action = $request->get("action");
+switch ($action) {
+    case 'populate-project':
+    case 'index-project':
+        header('Content-Type: application/json');
+        echo $response->getContent();
+        break;
+    default:
+        require_once APP_PATH_DOCROOT . 'ControlCenter/header.php';
+        echo $response->getContent();
+        require_once APP_PATH_DOCROOT . 'ControlCenter/footer.php';
+        break;
+}
+
+
+
 
 

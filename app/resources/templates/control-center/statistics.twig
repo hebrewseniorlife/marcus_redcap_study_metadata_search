@@ -13,14 +13,9 @@
               {% if value is iterable %}
               <div id="{{prop}}-accordion">
                 <div class="card">
-                  <a class="btn text-left" data-toggle="collapse" data-target="#{{prop}}-collapse" aria-expanded="true" aria-controls="{{prop}}-collapse">
-                        ...
-                      </a>
-                  <div id="{{prop}}-collapse" class="collapse collapsed" aria-labelledby="headingOne" data-parent="#{{prop}}-accordion">
-                    <div class="card-body">
+                   <div class="card-body">
                       <code><pre>{{ value | json_encode(constant('JSON_PRETTY_PRINT')) | escape }}</pre></code>
-                    </div>
-                  </div>
+                   </div>
                 </div>
               </div>
               {% else %}{{ value }}{% endif %}</td>
@@ -28,6 +23,9 @@
           {% endfor %}
           </tbody>
         </table>
+      </div>
+      <div class="card-footer">
+        <button id="refresh-stats" class="btn btn-primary" onclick="location.reload()">Refresh</button>
       </div>
     </div>
   </div>

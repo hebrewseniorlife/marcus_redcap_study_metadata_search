@@ -2,6 +2,9 @@
 
 {% block body %}
 {% include 'settings.twig' %}
+{% include 'projects.twig' %}
+{% include 'index-projects.twig' %}
+{% include 'populate-projects.twig' %}
 <br/>
 <div class="row">
   <div class="col-md-12">
@@ -41,8 +44,8 @@
         </table>
       </div>
       <div class="card-footer">
-        <a class="btn btn-primary" href="{{ paths.populate }}" role="button" style="color: white">Populate All</a> &nbsp;
-        <a class="btn btn-primary" href="{{ paths.index }}" role="button" style="color: white">Index All</a> &nbsp;
+        <button id="populate-projects" class="btn btn-primary">Populate (All) Documents</button> &nbsp;
+        <button id="index-projects" class="btn btn-primary">Index (All) Projects</button> &nbsp;
         <a class="btn btn-primary" href="{{ paths.purge }}" role="button" style="color: white">Purge All</a>
       </div>
     </div>

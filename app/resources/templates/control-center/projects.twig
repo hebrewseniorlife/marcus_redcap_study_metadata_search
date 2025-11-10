@@ -1,0 +1,13 @@
+<!-- JSON Data Source -->
+{% set filtered = projects|map(p => { project_id: p.project_id, title: p.title, enabled : enable }) %}
+<script type="application/json" id="projectData">
+  {{ { projects: filtered }|json_encode|raw }}
+</script>
+
+<script type="text/javascript">
+    function loadProjects() {
+      const jsonText = document.getElementById('projectData').textContent;
+      const data = JSON.parse(jsonText);
+      return data.projects || [];
+    }
+</script>

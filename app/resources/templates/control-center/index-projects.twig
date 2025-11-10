@@ -1,0 +1,87 @@
+<div class="modal fade" id="indexProjectsModal" tabindex="-1" aria-labelledby="indexProjectsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="indexProjectsModalLabel">Index Project(s)</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="indexProjectsAccordion" class="accordion"></div>
+        </div>
+      </div>
+    </div>
+ </div>
+
+   <!-- Accordion Item Template -->
+  <template id="indexProjectTemplate">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse">
+          Processing...
+        </button>
+      </h2>
+      <div class="accordion-collapse collapse" data-bs-parent="#resultsAccordion">
+        <div class="accordion-body">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Processng...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script type="text/javascript">
+    function indexProjects() {
+      const baseUrl = "{{ paths.index_project|raw }}";
+      const projects = loadProjects();
+      
+      const accordion = $('#indexProjectsAccordion');
+      accordion.empty();
+
+      const modal = new bootstrap.Modal(document.getElementById('indexProjectsModal'));
+      modal.show();
+
+      projects.forEach((project, index) => {
+        const template = document.getElementById('indexProjectTemplate');
+        const clone = template.content.cloneNode(true);
+        const panelId = `indexProjectPanel_${project.project_id}`;
+        const collapseId = `indexProjetCollapse_${project.project_id}`;
+        const url = baseUrl + "&project_id=" + project.project_id;
+
+        if (project.enabled == false) return;
+
+        $(clone).find('.accordion-header').attr('id', panelId);
+        $(clone).find('.accordion-button')
+          .attr('data-bs-target', `#${collapseId}`)
+          .attr('aria-controls', collapseId);
+        $(clone).find('.accordion-collapse')
+          .attr('id', collapseId);
+
+        $('#indexProjectsAccordion').append(clone);
+
+        $.ajax({
+          url: url,
+          method: "GET",
+          dataType: "json",
+          success: function(data) {
+            const message = data.message || "No message";
+            const log = data.log || "";
+            const logContent = log.length > 0
+              ? `<pre>${log}</pre>`
+              : '<em>No log entries</em>';
+
+            $(`#${panelId} button`).text(message);
+            $(`#${collapseId} .accordion-body`).html(logContent);
+          },
+          error: function(xhr) {
+            $(`#${panelId} button`).text(`Error: ${xhr.status}`);
+            $(`#${collapseId} .accordion-body`)
+              .html(`<div class="text-danger">Request failed: ${url}</div>`);
+          }
+        });      });
+    }
+
+    $(document).ready(function() {
+      $('#index-projects').on('click', indexProjects);
+    });
+  </script>
