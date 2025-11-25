@@ -2,10 +2,10 @@
 
 namespace Controllers;
 
-use ProjectService;
-use SearchEngineService;
-use SearchEngineFactory;
-use CronService;
+use Services\ProjectService;
+use Services\SearchEngineService;
+use SearchEngine\SearchEngineFactory;
+use Services\CronService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;

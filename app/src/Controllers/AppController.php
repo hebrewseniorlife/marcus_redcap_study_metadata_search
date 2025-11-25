@@ -4,7 +4,7 @@ namespace Controllers;
 
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
-use TemplateEngine as TemplateEngine;
+use Template\TemplateEngine as TemplateEngine;
 use Logging\Log as Log;
 use Logging\ExternalModuleLogHandler;
 

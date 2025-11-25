@@ -1,9 +1,9 @@
 <?php
 namespace Marcus\StudyMetadataSearch\ExternalModule;
 
-use ProjectService;
-use SearchEngineService;
-use CronService;
+use Services\ProjectService;
+use Services\SearchEngineService;
+use Services\CronService;
 
 /**
  * ExternalModule  - (required) Abstract implementation of REDCap module

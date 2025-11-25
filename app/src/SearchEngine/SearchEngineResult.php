@@ -1,8 +1,8 @@
 <?php
 
-namespace Models;
+namespace SearchEngine;
 
-use Models\Document;
+use Document\Document;
 
 class SearchEngineResult {       
     /**

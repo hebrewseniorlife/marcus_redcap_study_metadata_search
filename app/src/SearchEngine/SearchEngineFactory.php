@@ -1,10 +1,12 @@
 <?php
 
+namespace SearchEngine;
+
 use Psr\Log\LoggerInterface;
-use SearchEngines\ISearchEngine as ISearchEngine;
-use SearchEngines\TNTSearchEngine as TNTSearchEngine;
-use Models\SearchEngineProvider as SearchEngineProvider;
-use SettingsHelper as SettingsHelper;
+use SearchEngine\Providers\ISearchEngine as ISearchEngine;
+use SearchEngine\Providers\TNTSearchEngine as TNTSearchEngine;
+use SearchEngine\SearchEngineProvider as SearchEngineProvider;
+use Settings\SettingsHelper as SettingsHelper;
 
 class SearchEngineFactory
 {

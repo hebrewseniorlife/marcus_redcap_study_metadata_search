@@ -2,10 +2,10 @@
 
 namespace Controllers;
 
-use CartService;
-use DocumentHelper;
 use Controllers\ApiController;
-use SearchEngineService;
+use Document\DocumentHelper;
+use Services\CartService;
+use Services\SearchEngineService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;

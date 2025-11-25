@@ -1,11 +1,11 @@
 <?php
 
-namespace SearchEngines;
+namespace SearchEngine\Providers;
 
 use Psr\Log\LoggerInterface;
-use Models\SearchEngineProvider as SearchEngineProvider;
-use Models\Document as Document;
-use SearchEngines\ISearchEngine as ISearchEngine;
+use SearchEngine\SearchEngineProvider as SearchEngineProvider;
+use Document\Document as Document;
+use SearchEngine\Providers\ISearchEngine as ISearchEngine;
 use TeamTNT\TNTSearch\TNTSearch;
 
 class TNTSearchEngine implements ISearchEngine

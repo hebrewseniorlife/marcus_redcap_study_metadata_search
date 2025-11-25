@@ -1,15 +1,16 @@
 <?php
 
+namespace Services;
 
-use Models\SearchEngineProvider as SearchEngineProvider;
-use SearchEngines\ISearchEngine;
-use Models\Project;
-use Models\Document as Document;
-use Models\SearchEngineResult as SearchEngineResult;
+use SearchEngine\SearchEngineProvider as SearchEngineProvider;
+use SearchEngine\Providers\ISearchEngine;
+use SearchEngine\SearchEngineFactory as SearchEngineFactory;
+use SearchEngine\SearchEngineResult as SearchEngineResult;
+use Project\Project;
+use Document\Document as Document;
 use Psr\Log\LoggerInterface;
-use SettingsHelper as SettingsHelper;
-use DocumentRepository as DocumentRepository;
-use SearchEngineFactory as SearchEngineFactory;
+use Settings\SettingsHelper as SettingsHelper;
+use Document\DocumentRepository as DocumentRepository;
 
 /**
  * SearchEngineService

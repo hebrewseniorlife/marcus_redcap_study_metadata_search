@@ -1,8 +1,11 @@
 <?php
 
-use Models\Document as Document;
-use Models\Project as Project;
+namespace Services;
+
+use Document\Document as Document;
+use Project\Project as Project;
 use function Stringy\create as s;
+use REDCap as REDCap;
 
 /**
  * ProjectService

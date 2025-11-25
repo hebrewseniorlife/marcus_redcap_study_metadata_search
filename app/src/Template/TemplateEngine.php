@@ -1,5 +1,7 @@
 <?php
 
+namespace Template;
+
 use Twig\Environment as Environment;
 use Twig\Loader\FilesystemLoader as FilesystemLoader;
 use Twig\Extra\String\StringExtension as StringExtension;

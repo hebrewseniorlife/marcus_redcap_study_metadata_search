@@ -1,5 +1,7 @@
 <?php 
 
+namespace Services;
+
 use Cron\CronExpression;
 
 class CronService extends AbstractService {

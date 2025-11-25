@@ -1,5 +1,7 @@
 <?php
 
+namespace Document;
+
 use League\Csv\Writer;
 
 class DocumentHelper {        

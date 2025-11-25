@@ -1,9 +1,9 @@
 <?php
 
-namespace SearchEngines;
+namespace SearchEngine\Providers;
 
-use Models\SearchEngineProvider;
-use Models\Document;
+use SearchEngine\SearchEngineProvider;
+use Document\Document;
 use Psr\Log\LoggerInterface;
 
 interface ISearchEngine

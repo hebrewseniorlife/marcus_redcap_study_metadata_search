@@ -2,10 +2,10 @@
 
 namespace Controllers;
 
-use SearchEngineService;
-use CartService;
-use ProjectService;
-use Models\SearchEngineResult as SearchEngineResult;
+use Services\SearchEngineService;
+use Services\CartService;
+use Services\ProjectService;
+use SearchEngine\SearchEngineResult as SearchEngineResult;
 use Controllers\AppController;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;

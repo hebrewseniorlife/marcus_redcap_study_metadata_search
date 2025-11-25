@@ -1,5 +1,7 @@
 <?php
 
+namespace Services;
+
 /**
  * CartService
  */

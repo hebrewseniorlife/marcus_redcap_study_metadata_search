@@ -1,8 +1,8 @@
 <?php
 
-namespace Models;
+namespace Project;
 
-use Models\Document;
+use Document\Document as Document;
 
 class Project {
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Models;
+namespace Document;
 
 class Document {    
     public function __construct(int $id = 0)

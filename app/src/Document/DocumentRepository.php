@@ -1,10 +1,13 @@
 <?php
 
-use Models\Document as Document;
-use Models\Project as Project;
+namespace Document;
+
+use Document\Document as Document;
+use Project\Project as Project;
 use Psr\Log\LoggerInterface;
-use SettingsHelper as SettingsHelper;
+use Settings\SettingsHelper as SettingsHelper;
 use RedBeanPHP\R as R;
+use Services\AbstractService as AbstractService;
 
 /**
  * DocumentRepository
@@ -15,6 +18,9 @@ class DocumentRepository extends AbstractService {
 
     /** @var bool */
     private bool $initialized = false;
+
+    /** @var string */
+    private string $dsn = "";
 
     /**
      * __construct
@@ -46,11 +52,11 @@ class DocumentRepository extends AbstractService {
             mkdir($folderPath, 0777, true);
         }   
         
-        $dsn = "sqlite:".$folderPath.DIRECTORY_SEPARATOR.self::DEFAULT_DATABASE_NAME;        
+        $this->dsn = "sqlite:".$folderPath.DIRECTORY_SEPARATOR.self::DEFAULT_DATABASE_NAME;        
         $this->logger->info("Document Repository: Initializing with DSN: $dsn");
 
         // Bootstrap RedBean connection
-        R::setup($dsn);
+        R::setup($this->dsn);
         R::freeze($freeze);
 
         // Ensure connection works
@@ -61,6 +67,15 @@ class DocumentRepository extends AbstractService {
         $this->ensureTable();
 
         return $this;
+    }
+
+    /**
+     * Gets the Data Source Name (DSN) for the database connection.
+     *
+     * @return string The DSN string.
+     */
+    function getDSN(): string {
+        return $this->dsn;
     }
 
     /**

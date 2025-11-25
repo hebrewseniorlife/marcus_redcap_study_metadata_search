@@ -1,5 +1,7 @@
 <?php
 
+namespace Settings;
+
 class SettingsHelper {        
     const MODULE_NAME = 'marcus_redcap_study_metadata_search';
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace Services;
+
 use Psr\Log\LoggerInterface;
 use Logging\Log;
 use Logging\ExternalModuleLogHandler;
