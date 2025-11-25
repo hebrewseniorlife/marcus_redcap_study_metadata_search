@@ -7,14 +7,16 @@ use Project\Project as Project;
 use Psr\Log\LoggerInterface;
 use Settings\SettingsHelper as SettingsHelper;
 use RedBeanPHP\R as R;
-use Services\AbstractService as AbstractService;
 
 /**
  * DocumentRepository
  */
-class DocumentRepository extends AbstractService {
+class DocumentRepository {
     const DEFAULT_DATABASE_NAME = 'documents.sqlite';
     const TYPE = 'document';
+
+    /** @var LoggerInterface */
+    private LoggerInterface $logger;
 
     /** @var bool */
     private bool $initialized = false;
@@ -24,16 +26,22 @@ class DocumentRepository extends AbstractService {
 
     /**
      * __construct
-     *
-     * @param  mixed $module
-     * @return void
+     * 
+     * @param string|null $folderPath The path to the folder where the SQLite database will be stored.
+     * @param LoggerInterface $logger The logger instance for logging messages.
+     * @throws InvalidArgumentException If the logger is null.
+     * @throws Exception If the folder path is null.
      */
-    function __construct($module, LoggerInterface $logger, string $folderPath = null)
+    function __construct(string $folderPath = null, LoggerInterface $logger = null)
     {
-        parent::__construct($module, $logger);
+        if ($logger === null) {
+            throw new InvalidArgumentException('Logger cannot be null.');
+        }
+
+        $this->logger = $logger;
 
         if ($folderPath === null) {
-            throw new Exception("Folder path for DocumentRepository cannot be null.");
+            throw new InvalidArgumentException("Folder path for DocumentRepository cannot be null.");
         }   
 
         $this->initialize($folderPath);

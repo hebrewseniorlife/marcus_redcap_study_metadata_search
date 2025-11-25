@@ -51,7 +51,7 @@ class SearchEngineService extends AbstractService {
         $this->engine = SearchEngineFactory::createSearchEngine($this->provider, $this->logger);
 
         $folderPath = SettingsHelper::getTempFolderPath($this->module);
-        $this->repository = new DocumentRepository($this->module, $this->logger, $folderPath);
+        $this->repository = new DocumentRepository($folderPath, $this->logger);
     }
     
     /**
