@@ -118,6 +118,46 @@ class Document {
     public function toArray(): array {
         return get_object_vars($this);
     }
+
+    /**
+     * Converts the Document object to a searchable array.
+     *
+     * @return array The searchable array representation of the Document object.
+     */
+    public function toSearchableArray(): array
+    {
+        // $array = $this->toArray();
+        // $array['content'] = $this->getSearchableContent();
+        return [
+            'id' => $this->id,
+            'document' => $this->getSearchableContent()
+        ];
+    }
+
+    /**
+     * Converts the Document object to a searchable string.
+     *
+     * @return string The searchable content of the Document object.
+     */
+    public function getSearchableContent(): string {
+        $field_label = strip_tags($this->label);
+
+        $content = [    
+            $document->name,
+            "field_label__{$field_label}",
+            "field_type__{$this->field_type}",
+            "form_name__{$this->form_name}",
+            "form_title__{$this->form_title}",
+            "project_title__{$this->project_title}",
+            "project_id__{$this->project_id}"
+        ];
+
+        if (isset($this->note) && strlen($this->note) > 0){
+            array_push($content, "field_note__{$this->note}");
+        }   
+        
+        return $searchText = implode(" ", $content);
+    }
 }
 
 

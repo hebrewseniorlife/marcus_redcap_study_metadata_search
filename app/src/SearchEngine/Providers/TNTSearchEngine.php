@@ -93,6 +93,27 @@ class TNTSearchEngine implements ISearchEngine
         return $index;
     }
 
+    // /**
+    //  * indexByProject
+    //  *
+    //  * @param  string $projectId
+    //  * @return bool
+    //  */
+    // public function indexByProject(string $projectId): bool
+    // {
+    //     $this->logger->debug("TNT Search Engine: Indexing documents for project ID: {$projectId}");
+
+    //     $index = $this->getIndex();
+    //     if ($index == null) {
+    //        return false;
+    //     }
+
+    //     $index->query("SELECT id, content FROM document WHERE project_id = {$projectId}");
+    //     $index->run();
+
+    //     return true;
+    // }
+
     /**
      * deleteIndex
      *
@@ -140,7 +161,7 @@ class TNTSearchEngine implements ISearchEngine
            return false;
         }
 
-        $searchable = $this->toSearchable($document);
+        $searchable = $document->toSearchableArray();
         $index->delete($searchable['id']); // Ensure no duplicates
         $index->insert($searchable);
         
@@ -155,11 +176,11 @@ class TNTSearchEngine implements ISearchEngine
      */
     public function updateDocument(Document $document): bool
     {
-        $index = $this->createIndex();
+        $index = $this->getIndex();
         if ($index == null) {
-           return false;
+           throw new \Exception("TNT Search Engine: Index does not exist.");
         }
-        $searchable = $this->toSearchable($document);
+        $searchable = $document->toSearchableArray();
         $index->update($searchable);
         
         return true;
@@ -173,45 +194,13 @@ class TNTSearchEngine implements ISearchEngine
      */
     public function deleteDocument(string $id): bool
     {
-        $index = $this->createIndex();
+        $index = $this->getIndex();
         if ($index == null) {
-           return false;
+            throw new \Exception("TNT Search Engine: Index does not exist.");
         }
         $index->delete($id);
         
         return true;
-    }
-
-    /**
-     * toSearchable
-     *
-     * @param  Document $document
-     * @return array
-     */
-    public function toSearchable(Document $document): array
-    {
-        $field_label = strip_tags($document->label);
-
-        $content = [    
-            $document->name,
-            "field_label__{$field_label}",
-            "field_type__{$document->field_type}",
-            "form_name__{$document->form_name}",
-            "form_title__{$document->form_title}",
-            "project_title__{$document->project_title}",
-            "project_id__{$document->project_id}"
-        ];
-
-        if (isset($document->note) && strlen($document->note) > 0){
-            array_push($content, "field_note__{$document->note}");
-        }   
-        
-        $searchText = implode(" ", $content);
-
-        return [
-            'id' => $document->id,
-            'document' => $searchText,
-        ];
     }
 
     /** getStats
@@ -303,6 +292,8 @@ class TNTSearchEngine implements ISearchEngine
         if (!file_exists($storageFolder)) {
             mkdir($storageFolder, 0777, true);
         }   
+
+        // 'database' => $tempFolderPath.DIRECTORY_SEPARATOR.'documents.sqlite',
 
         return [
             'driver'  => 'sqlite',

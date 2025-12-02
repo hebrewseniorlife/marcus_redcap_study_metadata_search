@@ -330,5 +330,7 @@ class DocumentRepository {
         $bean->note = $document->note;
         $bean->context = json_encode($document->context);
         $bean->date_created = $document->date_created;
+        
+        $bean->content = $document->getSearchableContent();
     }
 }
