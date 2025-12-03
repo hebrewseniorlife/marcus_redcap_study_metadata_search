@@ -39,6 +39,9 @@ class ControlCenterController extends AppController {
             case 'index-project':
                 return $this->indexProject($request, $response);
             break;
+            case 'create-index':
+                return $this->createIndex($request, $response);
+            break;            
             case 'purge':
                 return $this->purge($request, $response);
             break;
@@ -78,6 +81,7 @@ class ControlCenterController extends AppController {
             "cron"       => $cron,
             "paths"      => array(
                 "purge"  => $this->module->getUrl('control-center.php')."&action=purge",
+                "create_index"  => $this->module->getUrl('control-center.php')."&action=create-index",
                 "index_project" => $this->module->getUrl('control-center.php')."&action=index-project",
                 "populate_project" => $this->module->getUrl('control-center.php')."&action=populate-project"
             )
@@ -184,6 +188,42 @@ class ControlCenterController extends AppController {
             "log" => $log
         ]);       
     }
+
+    /**
+     * purge
+     *
+     * @param  Request $request
+     * @param  Response $response
+     * @return Response
+     */
+    function createIndex(Request $request, Response $response) : Response { 
+        $this->logger->info("Manual create index from Control Center.");
+
+        $searchService = new SearchEngineService($this->module, $this->logger);
+        $searchService->createIndex();
+        
+        $log = \Logging\Log::getStreamContents();
+
+        $context = $this->createContext("System Purge (All)", [
+            "engine"     => $searchService->getProvider(),
+            "projects"   => [],
+            "stats"      => $searchService->getStats(),
+            "log"        => $log,
+            "paths"      => array(
+                "view"  => $this->module->getUrl('control-center.php')."&action=view"
+            )
+        ]);
+        $content = $this->template->render("@control-center/create-index.twig", $context);
+
+        $response = new Response(
+            $content,
+            Response::HTTP_OK,
+            [self::REDCAP_SCOPE_HEADER => 'control-center']
+        );
+
+        return $response;
+
+    }        
 
     /**
      * purge

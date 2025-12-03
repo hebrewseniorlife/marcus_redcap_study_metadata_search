@@ -277,7 +277,17 @@ class SearchEngineService extends AbstractService {
     }
        
     /**
-     * rebuild
+     * createIndex
+     *
+     * @return void
+     */
+    function createIndex() : void {
+        $this->logger->warning("Search Engine Service: Creating new index from existing document repository.");
+        $this->engine->createIndex();
+    }
+
+    /**
+     * purgeAll
      *
      * @return void
      */

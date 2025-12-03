@@ -12,6 +12,7 @@ class TNTSearchEngine implements ISearchEngine
 {
     const DEFAULT_INDEX_NAME = 'document.index';
     const DEFAULT_PRIMARY_KEY = 'id';
+    const DEFAULT_SQL = 'select * from document';
     const DEFAULT_SEARCH_LIMIT = 500;
 
     /**
@@ -75,77 +76,51 @@ class TNTSearchEngine implements ISearchEngine
     */
     public function createIndex(): object
     {
-        $index = $this->getIndex();
-        if ($index != null) {
-            return $index;
-        }
-        else
-        {
-            $this->logger->debug("TNT Search Engine: Creating new index at: {$this->tntConfig['storage']}");
+        $this->logger->debug("TNT Search Engine: Creating new index at: {$this->tntConfig['storage']}");
 
-            $index = $this->tntSearch->createIndex(self::DEFAULT_INDEX_NAME);
-            $index->setPrimaryKey(self::DEFAULT_PRIMARY_KEY);
-            $index->includePrimaryKey();
-            $index->disableOutput = true;
-            $index->run();
-        }
+        $index = $this->tntSearch->createIndex(self::DEFAULT_INDEX_NAME);
+        $index->setPrimaryKey(self::DEFAULT_PRIMARY_KEY);
+        $index->query(self::DEFAULT_SQL);
+        $index->includePrimaryKey();
+        $index->disableOutput = true;
+        $index->run();
 
         return $index;
     }
 
+
     // /**
-    //  * indexByProject
+    //  * deleteIndex
     //  *
-    //  * @param  string $projectId
     //  * @return bool
     //  */
-    // public function indexByProject(string $projectId): bool
+    // public function deleteIndex(): bool
     // {
-    //     $this->logger->debug("TNT Search Engine: Indexing documents for project ID: {$projectId}");
-
-    //     $index = $this->getIndex();
-    //     if ($index == null) {
-    //        return false;
+    //     $path =  $this->tntConfig["storage"].DIRECTORY_SEPARATOR.self::DEFAULT_INDEX_NAME;
+    //     $this->logger->debug("TNT Search Engine: Deleting index at: {$path}");
+        
+    //     // Open the file with 'c+' mode, which opens for read and write.
+    //     // The file is created if it does not exist.
+    //     if (!$fp = fopen($path, 'c+')) {
+    //         $this->logger->debug("TNT Search Engine: Cannot open file ({$path})");
     //     }
+    //     else{
+    //         // Attempt to get an exclusive lock on the file
+    //         if (flock($fp, LOCK_EX | LOCK_NB)) { // LOCK_NB prevents blocking
+    //             // Lock acquired, now perform the deletion
+    //             unlink($path);
+    //             $this->logger->debug("TNT Search Engine: File deleted successfully.");
 
-    //     $index->query("SELECT id, content FROM document WHERE project_id = {$projectId}");
-    //     $index->run();
+    //             // Release the lock
+    //             flock($fp, LOCK_UN);
+    //         } else {
+    //             // Lock not acquired, likely due to another process holding the lock
+    //             $this->logger->debug("TNT Search Engine: Could not get lock. Another process is using the file.");
+    //         }
+    //     }
 
     //     return true;
     // }
-
-    /**
-     * deleteIndex
-     *
-     * @return bool
-     */
-    public function deleteIndex(): bool
-    {
-        $path =  $this->tntConfig["storage"].DIRECTORY_SEPARATOR.self::DEFAULT_INDEX_NAME;
-        $this->logger->debug("TNT Search Engine: Deleting index at: {$path}");
-        
-        // Open the file with 'c+' mode, which opens for read and write.
-        // The file is created if it does not exist.
-        if (!$fp = fopen($path, 'c+')) {
-            $this->logger->debug("TNT Search Engine: Cannot open file ({$path})");
-        }
-        else{
-            // Attempt to get an exclusive lock on the file
-            if (flock($fp, LOCK_EX | LOCK_NB)) { // LOCK_NB prevents blocking
-                // Lock acquired, now perform the deletion
-                unlink($path);
-                $this->logger->debug("TNT Search Engine: File deleted successfully.");
-
-                // Release the lock
-                flock($fp, LOCK_UN);
-            } else {
-                // Lock not acquired, likely due to another process holding the lock
-                $this->logger->debug("TNT Search Engine: Could not get lock. Another process is using the file.");
-            }
-        }
-
-        return true;
-    }
 
     /**
 
@@ -156,9 +131,9 @@ class TNTSearchEngine implements ISearchEngine
      */
     public function insertDocument(Document $document): bool
     {
-        $index = $this->createIndex();
+        $index = $this->getIndex();
         if ($index == null) {
-           return false;
+           throw new \Exception("TNT Search Engine: Index does not exist.");
         }
 
         $searchable = $document->toSearchableArray();
@@ -285,21 +260,25 @@ class TNTSearchEngine implements ISearchEngine
      */
     public static function getConfig(SearchEngineProvider $provider)
     {
-        $tempFolderPath  = $provider->settings["temp_folder_path"];
-        $storageFolder   = $tempFolderPath.DIRECTORY_SEPARATOR.'tntsearch';
+        $tempFolderPath = $provider->settings['temp_folder_path'] ?? sys_get_temp_dir();
+        $config = $provider->settings['config'] ?? [];
+
+        if (!isset($config['driver'])) {
+            $config['driver'] = 'sqlite';
+        }
+
+        if (!isset($config['storage'])) {
+            $config['storage'] = $tempFolderPath.DIRECTORY_SEPARATOR.'tntsearch';
+        }
 
         // Ensure the storage directory exists
-        if (!file_exists($storageFolder)) {
-            mkdir($storageFolder, 0777, true);
+        if (!file_exists($config['storage'])) {
+            mkdir($config['storage'], 0777, true);
         }   
 
-        // 'database' => $tempFolderPath.DIRECTORY_SEPARATOR.'documents.sqlite',
+        $config['stemmer'] = \TeamTNT\TNTSearch\Stemmer\PorterStemmer::class;
+        $config['fuzziness'] = true;
 
-        return [
-            'driver'  => 'sqlite',
-            'storage' => $storageFolder,
-            'stemmer' => \TeamTNT\TNTSearch\Stemmer\PorterStemmer::class,
-            'fuzziness' => true
-        ];
+        return $config;
     }
 }

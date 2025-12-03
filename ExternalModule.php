@@ -101,19 +101,16 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 
 			try
 			{
-				// Create the search engine service, and distory the current index
-				$searchService = new SearchEngineService($this, $logger);
-				$searchService->purgeAll();
-
 				// Get all updated projects.
 				$projectService = new ProjectService($this, $logger);
 				$projects = $projectService->getProjects();
 
-				// Poplulate the document repository with the updated projects.
+				// Create the search engine service, and poplulate the document repository with the updated projects.
+				$searchService = new SearchEngineService($this, $logger);
 				$searchService->populateProjects($projects);
-
-				// Index all projects.
-				$searchService->indexProjects($projects);
+				
+				// Rebuild the search engine index.
+				$searchService->createIndex();
 
 				$message = "The search engine index has been rebuilt.";
 			}

@@ -12,7 +12,13 @@
           {% for key, setting in engine.settings %}
             <tr>
               <th>{{ key }}:</th>
-              <td>{{ setting }}</td>
+              <td>
+              {% if setting is iterable %}
+                <pre>{{ setting|json_encode(constant('JSON_PRETTY_PRINT'))|u.wordwrap(25) }}</pre>
+              {% else %}
+                {{ setting }}
+              {% endif %}
+              </td>
             </tr>   
           {% endfor %}
         </table>
