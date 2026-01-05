@@ -1,9 +1,12 @@
 <?php
 namespace Marcus\StudyMetadataSearch\ExternalModule;
 
-use Services\ProjectService;
-use Services\SearchEngineService;
-use Services\CronService;
+use Infrastructure\Logging\LoggingConfig;
+use Infrastructure\Configuration\SystemConfig;
+use Application\Services\ProjectService;
+use Application\Services\SearchEngineService;
+use Application\Services\CronService;
+
 
 /**
  * ExternalModule  - (required) Abstract implementation of REDCap module
@@ -18,7 +21,53 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	public function __construct() {
 		parent::__construct();
 	}
-	
+
+	/**
+	 * getSystemConfig
+	 *
+	 * @return SystemConfig
+	 */
+	public function getSystemConfig() : SystemConfig {
+		$loggingConfig = $this->getLoggingConfig();
+		$apiKeys	   = $this->getApiKeys();
+
+		return new SystemConfig($loggingConfig, $apiKeys);
+	}
+
+	/**
+	 * getLogConfig
+	 *
+	 * @return LoggingConfig
+	 */
+	protected function getLoggingConfig() : LoggingConfig {
+		$logLevel = $this->getSystemSetting('log-level') ?? 0;
+		return new LoggingConfig($logLevel);
+	}
+
+	/**
+	 * getNamedApiKeys
+	 *
+	 * @return array
+	 */
+	public function getApiKeys(): array {
+		$apiKeys = [];
+
+		$keys   = $this->getSystemSetting("api-key");
+        $names  = $this->getSystemSetting("api-name");
+
+		foreach ($keys as $index => $key) {
+			if (strlen($key) > 0) {
+				$apiKeys[$key] = $names[$index] ?? "Unnamed Key";
+			}
+		}
+
+		return $apiKeys;
+	}
+
+	public function getModuleDirectoryName() : string {
+		return $this->PREFIX . '_v' . $this->VERSION;
+	}
+
 	/**
 	 * getPrefix
 	 *

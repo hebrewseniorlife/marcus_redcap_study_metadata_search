@@ -2,19 +2,28 @@
 
 require_once(__DIR__.'/app/bootstrap.php');
 
-use Controllers\ApiController;
+use Interface\ExternalModule\Controller\Api\SearhchEngineController;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
+use Infrastructure\Logging\LoggerFactory;
+use Infrastructure\ExternalModule\Logging\ExternalModuleLogHandler;
 
+// Get the system configuration from the REDCap module
+$systemConfig = $module->getSystemConfig();
+
+// Create the request and response objects
 $request  = Request::createFromGlobals();
 $response = new Response();
 
-// Instantiate a new logger and allow it to log to REDCAP database
-$logger = \Logging\Log::getLogger();
-$logger->pushHandler(new \Logging\ExternalModuleLogHandler($module));
+// Create the logger
+$logger = (new LoggerFactory())->createLogger($systemConfig->logging);
+if ($systemConfig->logging->isEnabled())
+{
+    $logger->pushHandler(new ExternalModuleLogHandler($systemConfig->logging->level, true, $module));  
+}
 
 // Get the named-key as provided to the API URL
-$namedKey = ApiController::getModuleNamedKey($module, $request->get('key', ''));
+$namedKey = array_search($systemConfig->apiKeys, $request->get('key', ''));
 
 if ($namedKey !== null)
 {
@@ -25,7 +34,7 @@ if ($namedKey !== null)
     {
         case '':
         case 'search':
-            $controller = new \Controllers\SearchEngineController($module, $logger);
+            $controller = new SearhchEngineController($logger, $module);
             $response = $controller->handle($request, $response);
             break; 
         default:
