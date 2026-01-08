@@ -5,11 +5,11 @@ namespace Interface\ExternalModule\Controller\Web;
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Psr\Log\LoggerInterface;
 use Infrastructure\Logging\LoggerHelper;
-use Application\Services\Project\ProjectService;
-use Application\Services\Search\SearchEngineService;
-use Application\Services\Search\SearchEngineFactory;
-use Application\Services\Cron\CronService;
-use Application\Services\Cron\CronConfig;
+use Application\Service\Project\ProjectService;
+use Infrastructure\Document\DocumentRepositoryFactory;
+use Infrastructure\Search\SearchEngineFactory;
+use Application\Service\Search\SearchEngineService;
+use Application\Service\Cron\CronService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
@@ -17,6 +17,11 @@ use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
  * ControlCenterController
  */
 class ControlCenterController extends AbstractWebController {    
+    
+    protected SearchEngineService $searchService;
+    protected ProjectService $projectService;
+    protected CronService $cronService;
+
     /**
      * __construct
      *
@@ -26,6 +31,22 @@ class ControlCenterController extends AbstractWebController {
     function __construct(LoggerInterface $logger, ExternalModule $module)
     {
         parent::__construct($logger, $module);
+
+        // Load system configuration
+        $systemConfig = $this->module->getSystemConfig();
+
+        // Initialize document repository
+        $documentRepositoryFactory = new DocumentRepositoryFactory($logger);
+        $documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
+        
+        // Create search engine
+        $searchEngineFactory = new SearchEngineFactory($logger);
+        $searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);
+        
+        // Initialize services
+        $this->searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
+        $this->projectService   = new ProjectService($module);
+        $this->cronService      = new CronService($logger, $systemConfig->cron, $module);
     }
     
     /**
@@ -64,24 +85,20 @@ class ControlCenterController extends AbstractWebController {
      * @return Response
      */
     function view(Request $request, Response $response) : Response { 
-        $searchService    = new SearchEngineService($this->logger, $this->module);
-       
-        $projectService   = new ProjectService($this->module);
-        $projects         = $projectService->getProjects();
+        $projects = $this->projectService->getProjects();
 
-        $cronService = new CronService($this->logger, new CronConfig(), $this->module);
-        $cron               = $cronService->getDetails();
-        $cron["logs"]       = $cronService->getLogs();
+        $cron               = $this->cronService->getDetails();
+        $cron["logs"]       = $this->cronService->getLogs();
         $cron["enabled"]    = $this->module->getSystemSetting("autorebuild-enabled");
         if ($cron["enabled"] === "enabled")
         {
-            $cron["schedule"] = $cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("autorebuild-pattern"));
+            $cron["schedule"] = $this->cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("autorebuild-pattern"));
         }
 
         $context = $this->createContext("System View", [
-            "engine"     => $searchService->getProvider(),
+            "engine"     => $this->searchService->getSearchEngine()->getConfig(),
             "projects"   => $projects,
-            "stats"      => $searchService->getStats(),
+            "stats"      => $this->searchService->getStats(),
             "cron"       => $cron,
             "paths"      => array(
                 "purge"  => $this->module->getUrl('control-center.php')."&action=purge",
@@ -118,8 +135,7 @@ class ControlCenterController extends AbstractWebController {
 
         $this->logger->info("Manual populate documents requested from Control Center.");
 
-        $projectService = new ProjectService($this->module);
-        $project = $projectService->getProject($project_id, true);
+        $project = $this->projectService->getProject($project_id, true);
 
         if ($project === null){
             return new JsonResponse(["message" => "Project {$project_id} does not exist."], 
@@ -136,8 +152,7 @@ class ControlCenterController extends AbstractWebController {
                 Response::HTTP_BAD_REQUEST);       
         }
 
-        $searchService = new SearchEngineService($this->logger,$this->module);
-        $searchService->pupulateDocuments($project->documents);
+        $this->searchService->pupulateDocuments($project->documents);
 
         $log = LoggerHelper::getStreamContents($this->logger);
         
@@ -163,8 +178,7 @@ class ControlCenterController extends AbstractWebController {
 
         $this->logger->info("Manual index documents requested from Control Center.");
 
-        $projectService = new ProjectService($this->logger, $this->module);
-        $project = $projectService->getProject($project_id, false);
+        $project = $this->projectService->getProject($project_id, false);
 
         if ($project === null){
             return new JsonResponse(["message" => "Project {$project_id} does not exist."], 
@@ -176,15 +190,14 @@ class ControlCenterController extends AbstractWebController {
                 Response::HTTP_BAD_REQUEST);
         }
 
-        $searchService = new SearchEngineService($this->logger, $this->module);
-        $documents = $searchService->getDocumentsByProject($project_id);
+        $documents = $this->searchService->getDocumentsByProject($project_id);
 
         if (count($documents) == 0){
             return new JsonResponse(["message" => "No documents found for project {$project_id}."], 
                 Response::HTTP_BAD_REQUEST);       
         }
 
-        $searchService->indexDocuments($documents);
+        $this->searchService->indexDocuments($documents);
         $log = LoggerHelper::getStreamContents($this->logger);
         
         return new JsonResponse([
@@ -202,16 +215,14 @@ class ControlCenterController extends AbstractWebController {
      */
     function createIndex(Request $request, Response $response) : Response { 
         $this->logger->info("Manual create index from Control Center.");
-
-        $searchService = new SearchEngineService($this->logger, $this->module);
-        $searchService->createIndex();
+        $this->searchService->createIndex();
         
         $log = LoggerHelper::getStreamContents($this->logger);
 
         $context = $this->createContext("System Purge (All)", [
-            "engine"     => $searchService->getProvider(),
+            "engine"     => $this->searchService->getSearchEngine()->getConfig(),
             "projects"   => [],
-            "stats"      => $searchService->getStats(),
+            "stats"      => $this->searchService->getStats(),
             "log"        => $log,
             "paths"      => array(
                 "view"  => $this->module->getUrl('control-center.php')."&action=view"
@@ -238,16 +249,14 @@ class ControlCenterController extends AbstractWebController {
      */
     function purge(Request $request, Response $response) : Response { 
         $this->logger->info("Manual purge requested from Control Center.");
-
-        $searchService = new SearchEngineService($this->logger, $this->module);
-        $searchService->purgeAll();
+        $this->searchService->purgeAll();
         
         $log = LoggerHelper::getStreamContents($this->logger);
 
         $context = $this->createContext("System Purge (All)", [
-            "engine"     => $searchService->getProvider(),
+            "engine"     => $this->searchService->getSearchEngine()->getConfig(),
             "projects"   => [],
-            "stats"      => $searchService->getStats(),
+            "stats"      => $this->searchService->getStats(),
             "log"        => $log,
             "paths"      => array(
                 "view"  => $this->module->getUrl('control-center.php')."&action=view"

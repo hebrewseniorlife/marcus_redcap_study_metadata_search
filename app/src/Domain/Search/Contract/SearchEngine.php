@@ -1,14 +1,14 @@
 <?php
 
-namespace Domain\Search\Contracts;
+namespace Domain\Search\Contract;
 
-use Domain\Search\SearchEngineProvider;
+use Infrastructure\Search\SearchEngineConfig;
 use Domain\Document\Document;
 use Psr\Log\LoggerInterface;
 
 interface SearchEngine
 {
-    public function initialize(SearchEngineProvider $provider, LoggerInterface $logger);
+    public function initialize(LoggerInterface $logger, SearchEngineConfig $config);
     
     public function insertDocument(Document $document);
     public function updateDocument(Document $document);
@@ -18,6 +18,6 @@ interface SearchEngine
     public function search(string $term, array $options) : array;
     public function searchBy(string $field, string $value) : array;
     
-    public static function getSchema(SearchEngineProvider $provider);
-    public static function getConfig(SearchEngineProvider $provider);
+    public function getSchema() : array;
+    public function getConfig() : SearchEngineConfig;
 }

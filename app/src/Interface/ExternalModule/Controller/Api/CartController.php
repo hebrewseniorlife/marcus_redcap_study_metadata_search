@@ -4,9 +4,13 @@ namespace Interface\ExternalModule\Controller\Api;
 
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Domain\Document\DocumentHelper;
-use Application\Services\Cart\CartService;
-use Application\Services\Cart\CartConfig;
-use Application\Services\Search\SearchEngineService;
+use Application\Service\Cart\CartService;
+use Application\Service\Cart\CartConfig;
+
+use Infrastructure\Document\DocumentRepositoryFactory;
+use Infrastructure\Search\SearchEngineFactory;
+use Application\Service\Search\SearchEngineService;
+
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
@@ -15,12 +19,8 @@ use Symfony\Component\HttpFoundation\HeaderUtils as HeaderUtils;
 use Psr\Log\LoggerInterface;
 
 class CartController extends AbstractApiController{    
-    /**
-     * cart
-     *
-     * @var CartService
-     */
-    protected $cart;
+    protected CartService $cartService;
+    protected SearchEngineService $searchService;
 
      /**
      * __construct
@@ -32,7 +32,20 @@ class CartController extends AbstractApiController{
     {
         parent::__construct($logger, $module);
 
-        $this->cart = new CartService(new CartConfig());
+        // Load system configuration
+        $systemConfig = $this->module->getSystemConfig();
+
+        // Initialize document repositoryy
+        $documentRepositoryFactory = new DocumentRepositoryFactory($logger);
+        $documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
+     
+        // Create search engine
+        $searchEngineFactory = new SearchEngineFactory($logger);
+        $searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);
+
+        // Initialize services
+        $this->searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
+        $this->cartService      = new CartService(new CartConfig());
     }
 
     /**
@@ -78,7 +91,7 @@ class CartController extends AbstractApiController{
      */
     function add(Request $request, Response $response) : Response { 
         $documents  = $request->get("document", []);
-        $count      = $this->cart->add($documents);    
+        $count      = $this->cartService->add($documents);    
 
         return new JsonResponse([
             "message" => "Document(s) added to the cart."
@@ -95,7 +108,7 @@ class CartController extends AbstractApiController{
      */
     function remove(Request $request, Response $response) : Response { 
         $documents  = $request->get("document", []);
-        $count      = $this->cart->remove($documents);    
+        $count      = $this->cartService->remove($documents);    
 
         return new JsonResponse([
             "message" => "Document(s) removed from the cart."
@@ -111,9 +124,8 @@ class CartController extends AbstractApiController{
      * @return Response
      */
     function getAll(Request $request, Response $response) : Response {
-        $searchEngine = new SearchEngineService($this->logger, $this->module);
-
-        $documents = $searchEngine->getDocuments($this->cart->getAll());
+        $ids = $this->cartService->getAll();
+        $documents = $this->searchService->getDocuments($ids);
         
         DocumentHelper::setFieldOrder($documents);
         DocumentHelper::flattenAll($documents);
@@ -133,7 +145,7 @@ class CartController extends AbstractApiController{
      * @return Response
      */
     function clear(Request $request, Response $response) : Response { 
-        $this->cart->clear();
+        $this->cartService->clear();
 
         return new JsonResponse([
             "message" => "Cart has been cleared.",
@@ -151,7 +163,7 @@ class CartController extends AbstractApiController{
      */
     function reorder(Request $request, Response $response) : Response { 
         $documents  = $request->get("document", []);
-        $count      = $this->cart->reorder($documents);    
+        $count      = $this->cartService->reorder($documents);    
 
         return new JsonResponse([
             "message" => "The cart order has been saved."
@@ -166,9 +178,9 @@ class CartController extends AbstractApiController{
      * @param  mixed $response
      * @return Response
      */
-    function export(Request $request, Response $response) : Response {       
-        $searchEngine   = new SearchEngineService($this->logger, $this->module);
-        $documents      = $searchEngine->getDocuments($this->cart->getAll());
+    function export(Request $request, Response $response) : Response {      
+        $ids = $this->cartService->getAll();
+        $documents = $this->searchService->getDocuments($ids);
 
         DocumentHelper::setFieldOrder($documents);
 

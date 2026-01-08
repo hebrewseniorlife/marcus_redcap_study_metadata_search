@@ -1,8 +1,8 @@
 <?php
 
-namespace Application\Services\Cart;
+namespace Application\Service\Cart;
 
-use Application\Services\Cart\CartConfig;
+use Application\Service\Cart\CartConfig;
 
 /**
  * CartService

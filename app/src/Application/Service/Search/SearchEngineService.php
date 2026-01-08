@@ -1,17 +1,13 @@
 <?php
 
-namespace Application\Services\Search;
+namespace Application\Service\Search;
 
-use Domain\Search\SearchEngineProvider;
 use Domain\Search\SearchEngineResult;
-use Domain\Search\Contracts\SearchEngine;
-use Application\Services\Search\SearchEngineFactory;
+use Domain\Search\Contract\SearchEngine;
 use Domain\Project\Project;
 use Domain\Document\Document;
 use Psr\Log\LoggerInterface;
-use Infrastructure\Configuration\SettingsHelper;
-use Domain\Document\Contracts\DocumentRepository;
-use Infrastructure\Persistence\Sql\SqlDocumentRepository;
+use Domain\Document\Contract\DocumentRepository;
 
 /**
  * SearchEngineService
@@ -23,13 +19,6 @@ class SearchEngineService {
      * @var LoggerInterface
      */
     protected $logger;
-
-    /**
-     * module
-     *
-     * @var mixed
-     */
-    protected $module;
     
     /**
      * engine
@@ -44,44 +33,29 @@ class SearchEngineService {
      * @var DocumentRepository
      */
     protected $repository;
-
-    /**
-     * provider
-     *
-     * @var SearchEngineProvider
-     */
-    protected $provider;
-    
+   
     /**
      * __construct
      *
-     * @param  mixed $module
+     * @param  LoggerInterface $logger
+     * @param  DocumentRepository $repository
+     * @param  SearchEngine $engine
      * @return void
      */
-    function __construct(LoggerInterface $logger, $module)
+    function __construct(LoggerInterface $logger, DocumentRepository $repository, SearchEngine $engine)
     {
         $this->logger = $logger;
-
-        if (!isset($module))
-        {
-            throw new \Exception('Module may not be null.');
-        }
-        $this->module = $module;
-        
-        $this->provider = SearchEngineFactory::createProvder($this->module);
-        $this->engine = SearchEngineFactory::createSearchEngine($this->provider, $this->logger);
-
-        $folderPath = SettingsHelper::getTempFolderPath($this->module);
-        $this->repository = new SqlDocumentRepository($folderPath, $this->logger);
+        $this->repository = $repository;
+        $this->engine = $engine;
     }
     
     /**
-     * getProvider
+     * getSearchEngine
      *
-     * @return SearchEngineProvider
+     * @return SearchEngine
      */
-    function getProvider() : SearchEngineProvider {
-        return $this->provider;
+    function getSearchEngine() : SearchEngine {
+        return $this->engine;
     }
 
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Domain\Document\Contracts;
+namespace Domain\Document\Contract;
 
 use Domain\Document\Document;
 

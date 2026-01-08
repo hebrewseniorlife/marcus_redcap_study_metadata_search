@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\Services\Cart;
+namespace Application\Service\Cart;
 
 final class CartConfig
 {

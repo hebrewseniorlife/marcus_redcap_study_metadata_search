@@ -3,9 +3,9 @@
 namespace Infrastructure\Search;
 
 use Psr\Log\LoggerInterface;
-use Domain\Search\SearchEngineProvider;
+use Infrastructure\Search\SearchEngineConfig;
 use Domain\Document\Document;
-use Domain\Search\Contracts\SearchEngine;
+use Domain\Search\Contract\SearchEngine;
 use TeamTNT\TNTSearch\TNTSearch;
 
 class TNTSearchEngine implements SearchEngine
@@ -36,20 +36,29 @@ class TNTSearchEngine implements SearchEngine
      */
     protected $tntConfig;
 
+
+    /**
+     * searchEngineConfig
+     *
+     * @var SearchEngineConfig
+     */
+    protected SearchEngineConfig $searchEngineConfig;
+
     /** initialize
      *
-     * @param  SearchEngineProvider $provider
+     * @param  SearchEngineConfig $searchEngineConfig
      * @param  LoggerInterface $logger
      * @return void
      */
-    public function initialize(SearchEngineProvider $provider, LoggerInterface $logger)
+    public function initialize(LoggerInterface $logger, SearchEngineConfig $searchEngineConfig)
     {
-        $this->tntConfig = $this->getConfig($provider);
+        $this->logger = $logger;
+        $this->searchEngineConfig = $searchEngineConfig;
+
+        $this->tntConfig = $this->getTntConfig($searchEngineConfig);
 
         $this->tntSearch = new TNTSearch();
         $this->tntSearch->loadConfig($this->tntConfig);
-        
-        $this->logger = $logger;
     }
 
     /**
@@ -246,7 +255,7 @@ class TNTSearchEngine implements SearchEngine
      * @param  SearchEngineProvider $settings
      * @return array
      */
-    public static function getSchema(SearchEngineProvider $settings)
+    public function getSchema() : array
     {
         // Implement schema retrieval logic here
         return $this->tntSearch->info();
@@ -255,13 +264,23 @@ class TNTSearchEngine implements SearchEngine
     /**
      * getConfig
      *
-     * @param  SearchEngineProvider $provider
+     * @return SearchEngineConfig
+     */
+    public function getConfig() : SearchEngineConfig
+    {
+        return $this->searchEngineConfig;
+    }
+
+    /**
+     * getTntConfig
+     *
+     * @param  SearchEngineConfig $searchEngineConfig
      * @return array
      */
-    public static function getConfig(SearchEngineProvider $provider)
+    public static function getTntConfig(SearchEngineConfig $searchEngineConfig) : array
     {
-        $tempFolderPath = $provider->settings['temp_folder_path'] ?? sys_get_temp_dir();
-        $config = $provider->settings['config'] ?? [];
+        $tempFolderPath = $searchEngineConfig->settings['temp_folder_path'] ?? sys_get_temp_dir();
+        $config = $searchEngineConfig->settings['config'] ?? [];
 
         if (!isset($config['driver'])) {
             $config['driver'] = 'sqlite';

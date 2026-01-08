@@ -1,11 +1,18 @@
 <?php
 namespace Marcus\StudyMetadataSearch\ExternalModule;
 
-use Infrastructure\Logging\LoggingConfig;
 use Infrastructure\Configuration\SystemConfig;
-use Application\Services\ProjectService;
-use Application\Services\SearchEngineService;
-use Application\Services\CronService;
+use Infrastructure\Logging\LoggingConfig;
+use Infrastructure\Document\DocumentRepositoryConfig;
+use Infrastructure\Search\SearchEngineConfig;
+use Application\Service\Cron\CronServiceConfig;
+
+use Infrastructure\Logging\LoggerFactory;
+use Infrastructure\ExternalModule\Logging\ExternalModuleLogHandler;
+
+use Application\Service\Project\ProjectService;
+use Application\Service\Search\SearchEngineService;
+use Application\Service\Cron\CronService;
 
 
 /**
@@ -28,10 +35,14 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	 * @return SystemConfig
 	 */
 	public function getSystemConfig() : SystemConfig {
-		$loggingConfig = $this->getLoggingConfig();
-		$apiKeys	   = $this->getApiKeys();
+		$loggingConfig 		= $this->getLoggingConfig();
+		$apiKeys	   		= $this->getApiKeys();
+		$tempFolder	   		= $this->getTempFolder();
+		$searchEngineConfig = $this->getSearchEngineConfig();
+		$documentRepoConfig = $this->getDocumentRepositoryConfig();
+		$cronServiceConfig	= $this->getCronServiceConfig();
 
-		return new SystemConfig($loggingConfig, $apiKeys);
+		return new SystemConfig($loggingConfig, $tempFolder, $documentRepoConfig, $searchEngineConfig, $cronServiceConfig, $apiKeys);
 	}
 
 	/**
@@ -64,6 +75,90 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 		return $apiKeys;
 	}
 
+	/**
+	 * getTempDir
+	 *
+	 * @return string
+	 */
+	public function getTempFolder() : string {
+        $tempFolder = $this->getSystemSetting("temp-folder") ?? null;
+        switch($tempFolder){
+            case 'custom' :
+                $customFolderPath   = $this->getSystemSetting("custom-temp-folder");
+                $tempFolderPath     = realpath($customFolderPath); // May need to be upgraded in future version...
+                break;
+            case 'system':
+                $tempFolderPath = sys_get_temp_dir();
+                break;
+            case 'redcap':
+            default:
+                $tempFolderPath = constant("APP_PATH_TEMP");
+                break;
+        }
+        
+        if (!is_dir($tempFolderPath))
+        {
+            throw new Exception("Temp folder ($tempFolderPath) is not a directory. See system-level module configuration.");
+        }                
+
+        return $tempFolderPath . DIRECTORY_SEPARATOR . $this->PREFIX; 
+	}
+
+
+	/**
+	 * getSearchEngineConfig
+	 *
+	 * @return SearchEngineConfig
+	 */
+	public function getSearchEngineConfig() : SearchEngineConfig {
+		$providerName = $this->getSystemSetting('search-engine-provider') ?? 'TNTSearchEngine';
+		$configValue  = $this->getSystemSetting('search-engine-config') ?? '{}';
+		$tempFolderPath = $this->getTempFolder();
+
+		$config = new SearchEngineConfig($providerName);
+		$config->settings["config"] = json_decode($configValue, true);
+		$config->settings["temp_folder_path"] = $tempFolderPath;
+
+		return $config;
+	}
+
+	/**
+	 * getDocumentRepositoryConfig
+	 *
+	 * @return array
+	 */
+	public function getDocumentRepositoryConfig() : DocumentRepositoryConfig {
+		$tempFolder = $this->getTempFolder();
+		$dsn 		= "sqlite:".$tempFolder.DIRECTORY_SEPARATOR."documents.sqlite";
+
+		return new DocumentRepositoryConfig($tempFolder, $dsn);
+	}
+
+	/**
+	 * getCronConfig
+	 *
+	 * @return CronConfig
+	 */
+	public function getCronServiceConfig() : CronServiceConfig {
+		// Get the autorebuild settings
+		$enabledSetting = $this->getSystemSetting('autorebuild-enabled') ?? 'disabled';
+		$enabled = ($enabledSetting === 'enabled') ? true : false;
+
+		// Get the autorebuild pattern
+		$pattern = $this->getSystemSetting('autorebuild-pattern') ?? '';
+
+		// Get the cron jobs (see config.json)
+		$config = $this->getConfig();
+
+		// Create and return the cron config
+		return new CronServiceConfig($enabled, $pattern, $config["crons"]);
+	}
+
+	/**
+	 * getModuleDirectoryName
+	 *
+	 * @return string
+	 */
 	public function getModuleDirectoryName() : string {
 		return $this->PREFIX . '_v' . $this->VERSION;
 	}
@@ -118,26 +213,35 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 
 		$message = "";
 
-		// Set up Monolog and add the REDCap handler to it.
-		$logger = \Logging\Log::getLogger('php://output');
-		$logger->pushHandler(new \Logging\ExternalModuleLogHandler($this));
+		// Get the system configuration from the REDCap module
+		$systemConfig = $this->getSystemConfig();
+		$cronConfig   	= $systemConfig->cron;
 
-		// Get the system setting for automatic-reindex.		
-		$enabled = $this->getSystemSetting("autorebuild-enabled");
-		$logger->info("Automatic reindex is {$enabled}.");
+		// Modify the logging config to log to output
+		$loggingConfig 	= $systemConfig->logging;
+		$loggingConfig->stream = 'php://output';
 
-		// // If the automatic-reindex is not enabled then exit
-		if ($enabled !== "enabled")
+		// Create the logger
+		$loggerFactory = new LoggerFactory();
+		$logger = $loggerFactory->createLogger($loggingConfig);
+
+		// Add the REDCap log handler if logging is enabled.
+		if ($systemConfig->logging->isEnabled())
 		{
-			return "Automatic reindex is not enabled.";			
+			$logger->pushHandler(new ExternalModuleLogHandler($systemConfig->logging->level, true, $this));  
 		}
 
+		// Log whether automatic reindex is enabled or disabled.
+		$enabled = $cronConfig->enabled ? "enabled" : "disabled";
+		$logger->info("Automatic reindex is $enabled.");	
+
+
 		// Get the cron service
-		$cronService = new CronService($this, $logger);
+		$cronService = new CronService($logger, $cronConfig, $this);
 
 		// Get the details inclulding the cron pattern and schedule
 		$details  = $cronService->getDetails();
-		$pattern  = $this->getSystemSetting('autorebuild-pattern');
+		$pattern  = $cronConfig->pattern;
 		$schedule = $cronService->getSchedule($details['last_start_time'], $pattern);
 
 		$is_due = ($schedule['is_due'] === true) ? "true" : "false"; 
@@ -150,14 +254,22 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 
 			try
 			{
-				// Get all updated projects.
-				$projectService = new ProjectService($this, $logger);
-				$projects = $projectService->getProjects();
-
-				// Create the search engine service, and poplulate the document repository with the updated projects.
-				$searchService = new SearchEngineService($this, $logger);
-				$searchService->populateProjects($projects);
+				// Initialize document repository
+				$documentRepositoryFactory = new DocumentRepositoryFactory($logger);
+				$documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
 				
+				// Create search engine
+				$searchEngineFactory = new SearchEngineFactory($logger);
+				$searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);				
+
+				// Initialize services
+				$searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
+				$projectService   = new ProjectService($module);
+
+				// Populate the projects into the search engine
+				$projects = $projectService->getProjects();
+				$searchService->populateProjects($projects);
+
 				// Rebuild the search engine index.
 				$searchService->createIndex();
 

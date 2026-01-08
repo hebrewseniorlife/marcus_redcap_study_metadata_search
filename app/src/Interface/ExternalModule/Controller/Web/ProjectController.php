@@ -4,10 +4,12 @@ namespace Interface\ExternalModule\Controller\Web;
 
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Psr\Log\LoggerInterface;
-use Application\Services\Search\SearchEngineService;
-use Application\Services\Cart\CartService;
-use Application\Services\Cart\CartConfig;
-use Application\Services\Project\ProjectService;
+use Infrastructure\Document\DocumentRepositoryFactory;
+use Infrastructure\Search\SearchEngineFactory;
+use Application\Service\Search\SearchEngineService;
+use Application\Service\Cart\CartService;
+use Application\Service\Cart\CartConfig;
+use Application\Service\Project\ProjectService;
 use Domain\Search\SearchEngineResult;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
@@ -16,20 +18,11 @@ use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
 /**
  * ProjectController
  */
-class ProjectController extends AbstractWebController {     
-    /**
-     * cart
-     *
-     * @var CartService
-     */
-    protected $cart;    
+class ProjectController extends AbstractWebController {   
 
-    /**
-     * search
-     *
-     * @var SearchEngineService
-     */
-    protected $searchEngine;
+    protected SearchEngineService $searchService;
+    protected ProjectService $projectService;
+    protected CartService $cartService;
 
     /**
      * __construct
@@ -41,9 +34,21 @@ class ProjectController extends AbstractWebController {
     {
         parent::__construct($logger, $module);
         
-        $this->cart         = new CartService(new CartConfig());
-        $this->searchEngine = new SearchEngineService($this->logger, $this->module);
-        $this->projectService = new ProjectService($this->module);
+        $systemConfig = $this->module->getSystemConfig();
+
+        // Initialize document repositoryy
+        $documentRepositoryFactory = new DocumentRepositoryFactory($logger);
+        $documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
+     
+        // Create search engine
+        $searchEngineFactory = new SearchEngineFactory($logger);
+        $searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);
+
+        // Initialize services
+        $this->searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
+        $this->projectService   = new ProjectService($module);
+
+        $this->cartService      = new CartService(new CartConfig());
     }
 
     /**
@@ -89,7 +94,7 @@ class ProjectController extends AbstractWebController {
 
         $results = new SearchEngineResult();
         if (strlen($term) > 0){
-            $results = $this->searchEngine->search($term);
+            $results = $this->searchService->search($term);
         }
 
         $context = $this->createContext("Search", [
@@ -100,7 +105,7 @@ class ProjectController extends AbstractWebController {
                     , "value" => ""
             ],
             "cart" => array (
-                "documents" => $this->cart->getAll()
+                "documents" => $this->cartService->getAll()
             )
         ]);
         
@@ -130,7 +135,7 @@ class ProjectController extends AbstractWebController {
         $results = new SearchEngineResult();
         
         if (array_search($field, $fields) >= 0 && strlen($value) > 0){
-            $results = $this->searchEngine->searchBy($field, $value);
+            $results = $this->searchService->searchBy($field, $value);
         }
 
         $context = $this->createContext("Search", [
@@ -141,7 +146,7 @@ class ProjectController extends AbstractWebController {
                     , "value" => $value
             ],
             "cart" => array (
-                "documents" => $this->cart->getAll()
+                "documents" => $this->cartService->getAll()
             )
         ]);
         

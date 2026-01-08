@@ -3,19 +3,18 @@
 namespace Interface\ExternalModule\Controller\Api;
 
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
-use Application\Services\Search\SearchEngineService;
+
+use Infrastructure\Document\DocumentRepositoryFactory;
+use Infrastructure\Search\SearchEngineFactory;
+use Application\Service\Search\SearchEngineService;
+
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
 use Psr\Log\LoggerInterface;
 
 class SearchEngineController extends AbstractWebController{       
-    /**
-     * searchEngine
-     *
-     * @var SearchEngineService
-     */
-    protected $searchEngine; 
+    protected SearchEngineService $searchService;
 
      /**
      * __construct
@@ -27,7 +26,19 @@ class SearchEngineController extends AbstractWebController{
     {
         parent::__construct($module, $logger);
 
-        $this->searchEngine = new SearchEngineService($this->module, $logger);
+        // Load system configuration
+        $systemConfig = $this->module->getSystemConfig();
+
+        // Initialize document repositoryy
+        $documentRepositoryFactory = new DocumentRepositoryFactory($logger);
+        $documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
+     
+        // Create search engine
+        $searchEngineFactory = new SearchEngineFactory($logger);
+        $searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);
+
+        // Initialize services
+        $this->searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
     }
 
     /**
@@ -66,7 +77,7 @@ class SearchEngineController extends AbstractWebController{
         $result = [];
 
         if (strlen($term) > 0){
-            $result = $this->searchEngine->search($term);
+            $result = $this->searchService->search($term);
         }
         
         return new JsonResponse([
@@ -103,7 +114,7 @@ class SearchEngineController extends AbstractWebController{
         }
         else
         {
-            $results = $this->searchEngine->searchBy($field, $value);
+            $results = $this->searchService->searchBy($field, $value);
         }
 
         return new JsonResponse([

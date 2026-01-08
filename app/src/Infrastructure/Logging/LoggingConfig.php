@@ -16,31 +16,31 @@ final class LoggingConfig
       *
       * @var int
       */
-    public readonly int $level;
+    public int $level;
 
     /** stream
       *
       * @var string
       */
-    public readonly string $stream;
+    public string $stream;
 
     /** channel
       *
       * @var string
       */
-    public readonly string $channel;
+    public string $channel;
 
     /** format
       *
       * @var string
       */
-    public readonly string $format;
+    public string $format;
 
     /** dateTimeFormat
       *
       * @var string
       */
-    public readonly string $dateTimeFormat;
+    public string $dateTimeFormat;
 
     /** __construct
       *

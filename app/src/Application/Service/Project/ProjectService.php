@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\Services\Project;
+namespace Application\Service\Project;
 
 use Domain\Document\Document;
 use Domain\Project\Project;

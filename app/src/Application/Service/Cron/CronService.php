@@ -1,10 +1,11 @@
 <?php 
 
-namespace Application\Services\Cron;
+namespace Application\Service\Cron;
 
 use Psr\Log\LoggerInterface;
 use Cron\CronExpression;
-use Application\Services\Cron\CronConfig;
+use Application\Service\Cron\CronServiceConfig;
+use \ExternalModules\AbstractExternalModule as ExternalModule;
 
 class CronService {
     const CRON_START_MESSAGE = 'Cron started successfully.';
@@ -12,28 +13,21 @@ class CronService {
 	const DEFAULT_CRON_PATTERN = '@weekly';
 	const DATETIME_FORMAT = 'Y-m-d H:i:s';
 
-	/**
-	 * config
-	 *
-	 * @var CronConfig
-	 */
-	protected $config;
+	protected CronServiceConfig $config;
+	protected ExternalModule $module;
+	protected LoggerInterface $logger;
 
 	/**
 	 * __construct
 	 *
 	 * @param  LoggerInterface $logger
-	 * @param  CronConfig $config
+	 * @param  CronServiceConfig $config
 	 * @return void
 	 */
-	function __construct(LoggerInterface $logger, CronConfig $config, $module)
+	function __construct(LoggerInterface $logger, CronServiceConfig $config, ExternalModule $module)
 	{
+		$this->logger = $logger;
 		$this->config = $config;
-		
-        if (!isset($module))
-        {
-            throw new \Exception('Module may not be null.');
-        }
         $this->module = $module;
 	}
 	
@@ -70,17 +64,17 @@ class CronService {
 			$cronIndex = array_search($name, array_column($crons, 'cron_name'));
 		}
 		
-		$cronConfig = [];
-		// If the index is found... get the cron config
+		$details = [];
+		// If the index is found... get the cron info
 		if ($cronIndex >= 0)
 		{
-			$cronConfig = $crons[$cronIndex];
-			$cronConfig = array_merge($cronConfig, [
+			$details = $crons[$cronIndex];
+			$details = array_merge($details, [
 				"last_start_time" => $this->getLastStartTime()
 			]);
 		}
 
-		return $cronConfig; 
+		return $details; 
 	}
 
     /**

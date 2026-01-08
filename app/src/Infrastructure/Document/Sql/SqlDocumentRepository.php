@@ -1,8 +1,9 @@
 <?php
 
-namespace Infrastructure\Persistence\Sql;
+namespace Infrastructure\Document\Sql;
 
-use Domain\Document\Contracts\DocumentRepository;
+use Domain\Document\Contract\DocumentRepository;
+use Infrastructure\Document\DocumentRepositoryConfig;
 use Domain\Document\Document;
 use Domain\Project\Project;
 use Infrastructure\Settings\SettingsHelper;
@@ -33,19 +34,11 @@ class SqlDocumentRepository implements DocumentRepository{
      * @throws InvalidArgumentException If the logger is null.
      * @throws Exception If the folder path is null.
      */
-    function __construct(string $folderPath = null, LoggerInterface $logger = null)
+    function __construct(LoggerInterface $logger = null, DocumentRepositoryConfig $config)
     {
-        if ($logger === null) {
-            throw new InvalidArgumentException('Logger cannot be null.');
-        }
-
         $this->logger = $logger;
-
-        if ($folderPath === null) {
-            throw new InvalidArgumentException("Folder path for DocumentRepository cannot be null.");
-        }   
-
-        $this->initialize($folderPath);
+        
+        $this->initialize($config->dsn);
     }
 
     /**
@@ -55,13 +48,14 @@ class SqlDocumentRepository implements DocumentRepository{
      * @param bool $freeze Optional. Whether to freeze the database schema. Default is false.
      * @return DocumentRepository A new instance of DocumentRepository.
      */
-    function initialize(string $folderPath, bool $freeze = false) : self {
+    function initialize(string $dsn, bool $freeze = false) : self {
         // Ensure the storage directory exists
-        if (!file_exists($folderPath)) {
-            mkdir($folderPath, 0777, true);
-        }   
+        // if (!file_exists($folderPath)) {
+        //     mkdir($folderPath, 0777, true);
+        // }   
         
-        $this->dsn = "sqlite:".$folderPath.DIRECTORY_SEPARATOR.self::DEFAULT_DATABASE_NAME;        
+        // $this->dsn = "sqlite:".$folderPath.DIRECTORY_SEPARATOR.self::DEFAULT_DATABASE_NAME;    
+        $this->dsn = $dsn;    
         $this->logger->info("Document Repository: Initializing with DSN: $dsn");
 
         // Bootstrap RedBean connection
