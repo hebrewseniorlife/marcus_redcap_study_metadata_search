@@ -92,7 +92,7 @@ class ControlCenterController extends AbstractWebController {
         
         $tempFolder     = $this->module->getTempFolder();
         $prefix	 	    = $this->module->getPrefix();
-        $logFilePath    = $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.log';
+        $logFilePath    = $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.ndjson';
 
         $reader = new LogReader($logFilePath);
         $recent = $reader->since('2 hours');

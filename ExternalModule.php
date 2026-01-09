@@ -64,7 +64,7 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 			),
 			new LoggingHandlerConfig(
 				level: $logLevel,
-				stream: $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.log',
+				stream: $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.ndjson',
 				channels: [LoggingConfig::DEFAULT_CHANNEL]
 			)
 		];
