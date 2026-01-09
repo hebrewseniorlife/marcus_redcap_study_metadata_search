@@ -5,6 +5,7 @@ namespace Interface\ExternalModule\Controller\Web;
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Psr\Log\LoggerInterface;
 use Infrastructure\Logging\LoggerHelper;
+use Infrastructure\Logging\JsonLogReader as LogReader;
 use Application\Service\Project\ProjectService;
 use Infrastructure\Document\DocumentRepositoryFactory;
 use Infrastructure\Search\SearchEngineFactory;
@@ -13,6 +14,7 @@ use Application\Service\Cron\CronService;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
+
 /**
  * ControlCenterController
  */
@@ -87,8 +89,17 @@ class ControlCenterController extends AbstractWebController {
     function view(Request $request, Response $response) : Response { 
         $projects = $this->projectService->getProjects();
 
+        
+        $tempFolder     = $this->module->getTempFolder();
+        $prefix	 	    = $this->module->getPrefix();
+        $logFilePath    = $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.log';
+
+        $reader = new LogReader($logFilePath);
+        $recent = $reader->since('2 hours');
+
         $cron               = $this->cronService->getDetails();
-        $cron["logs"]       = $this->cronService->getLogs();
+        // $cron["logs"]       = $this->cronService->getLogs();
+        $cron["logs"]       = $recent;
         $cron["enabled"]    = $this->module->getSystemSetting("autorebuild-enabled");
         if ($cron["enabled"] === "enabled")
         {

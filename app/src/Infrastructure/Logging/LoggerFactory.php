@@ -8,6 +8,7 @@ use Monolog\Level as Level;
 use Monolog\Handler\StreamHandler as StreamHandler;
 use Monolog\Handler\BufferHandler as BufferHandler;
 use Monolog\Handler\NullHandler as NullHandler;
+use Monolog\Formatter\JsonFormatter as JsonFormatter;
 use Monolog\Formatter\LineFormatter as LineFormatter;
 use Infrastructure\Logging\LoggingConfig;
 use Infrastructure\Logging\LoggingHandlerConfig;
@@ -67,9 +68,19 @@ final class LoggerFactory
         $stream = new StreamHandler($config->stream, $config->level);
 
         // Create a new line formatter based on defaults
-        $formatter = new LineFormatter($config->format, $config->dateTimeFormat);
-        $formatter->ignoreEmptyContextAndExtra(true);
-        $formatter->allowInlineLineBreaks(true);
+        $formatter = null;
+        // Choose formatter based on stream type
+        if (str_contains($config->stream, 'php://'))
+        {
+            $formatter = new LineFormatter($config->format, $config->dateTimeFormat);
+            $formatter->ignoreEmptyContextAndExtra(true);
+            $formatter->allowInlineLineBreaks(true);
+        }
+        else
+        {
+            // Use JSON formatter for file streams
+            $formatter = new JsonFormatter();
+        }
         
         // Apply the formatter        
         $stream->setFormatter($formatter);
