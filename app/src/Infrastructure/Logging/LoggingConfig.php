@@ -3,67 +3,54 @@
 namespace Infrastructure\Logging;
 
 use Monolog\Level as Level;
+use Infrastructure\Logging\LoggingHandlerConfig;
 
 final class LoggingConfig
 { 
-    const DATETIME_FOMAT = "Y-m-d H:i:s";
-    const DEFAULT_LEVEL  = Level::Debug;
-    const DEFAULT_FORMAT = '[%datetime%] [%channel%] [%level_name%] %message%'.PHP_EOL;
-    const DEFAULT_STREAM = 'php://memory';
-    const DEFAULT_CHANNEL = 'marcus_redcap';
+    const DEFAULT_CHANNEL = 'all';
 
-    /** level
-      *
-      * @var int
-      */
-    public int $level;
+    /**
+     * @var string[] $channel The logging channel name
+     */
+    public array $channels;
 
-    /** stream
-      *
-      * @var string
-      */
-    public string $stream;
+    /**
+     * @var LoggingHandlerConfig[] $handlers The logging handlers
+     */
+    private array $handlers;
 
-    /** channel
-      *
-      * @var string
-      */
-    public string $channel;
+    /**
+     * The default logging channel name
+     * 
+     */
+    function __construct(array $handlers = [], array $channels = [])
+    {        
+      $this->channels = $channels;
+      if (empty($channels))
+      {
+          $channels = [self::DEFAULT_CHANNEL];
+      }
 
-    /** format
-      *
-      * @var string
-      */
-    public string $format;
-
-    /** dateTimeFormat
-      *
-      * @var string
-      */
-    public string $dateTimeFormat;
-
-    /** __construct
-      *
-      * @param int    $level  The logging level
-      * @param string $stream The logging stream
-      */
-    public function __construct(int $level = LoggingConfig::DEFAULT_LEVEL, string $stream = LoggingConfig::DEFAULT_STREAM) {
-        $this->level = $level;
-        $this->stream = $stream;
-
-        // Not currently configurable, set to defaults
-        $this->channel = LoggingConfig::DEFAULT_CHANNEL;
-        $this->format = LoggingConfig::DEFAULT_FORMAT;
-        $this->dateTimeFormat = LoggingConfig::DATETIME_FOMAT;
+      $this->handlers = $handlers;
     }
 
-    /** isEnabled
-      *
-      * @return bool True if logging is enabled, false otherwise
-      */
-    public function isEnabled(): bool
+    /**
+     * getHandlersByChannel
+     *
+     * @param  string $channel
+     * @return LoggingHandlerConfig[]
+     */
+    function getHandlersByChannel(string $channel, bool $includeUndefined = true): array
     {
-        return $this->level > 0;
+        $result = [];
+        foreach ($this->handlers as $handler)
+        {
+            if (in_array($channel, $handler->channels) || ($includeUndefined && empty($handler->channels)))
+            {
+                $result[] = $handler;
+            }
+        }
+        return $result;
     }
 }
 

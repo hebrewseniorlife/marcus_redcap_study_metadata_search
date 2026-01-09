@@ -17,11 +17,8 @@ $request  = Request::createFromGlobals();
 $response = new Response();
 
 // Create the logger
-$logger = (new LoggerFactory())->createLogger($systemConfig->logging);
-if ($systemConfig->logging->isEnabled())
-{
-    $logger->pushHandler(new ExternalModuleLogHandler($systemConfig->logging->level, true, $module));  
-}
+$loggerFactory = new LoggerFactory($systemConfig->logging);
+$logger = $loggerFactory->createLogger();
 
 // Create the controller and handle the request
 $controller = new ControlCenterController($logger, $module);

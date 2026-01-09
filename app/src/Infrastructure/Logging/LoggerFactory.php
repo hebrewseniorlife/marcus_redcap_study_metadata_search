@@ -10,14 +10,18 @@ use Monolog\Handler\BufferHandler as BufferHandler;
 use Monolog\Handler\NullHandler as NullHandler;
 use Monolog\Formatter\LineFormatter as LineFormatter;
 use Infrastructure\Logging\LoggingConfig;
+use Infrastructure\Logging\LoggingHandlerConfig;
 
 final class LoggerFactory
 {
+    private LoggingConfig $config;
+
     /**
      * __construct
      */
-    function __construct()
+    function __construct(LoggingConfig $config)
     {
+        $this->config = $config;
     }
 
     /**
@@ -27,21 +31,25 @@ final class LoggerFactory
      * @param  mixed $useBuffer
      * @return void
      */
-    public function createLogger(LoggingConfig $config, $useBuffer = false) : LoggerInterface
+    public function createLogger(string $channel = LoggingConfig::DEFAULT_CHANNEL) : LoggerInterface
     {
-        // By default create a null handler
-        $handler = new NullHandler($config->level);
+        $logger = new Logger($channel);
 
-        // But, if a stream is provided then create the appropriate stream handler
-        if (strlen($config->stream ?? '') > 0)
+        // Get the handlers for the requested channel and include undefined channel handlers
+        $handlers = $this->config->getHandlersByChannel($channel, true);
+
+        // If no handlers are defined, then add a null handler to discard all logs
+        if (count($handlers) == 0)
         {
-            // Create the appropriate stream handler based on the config provided
-            $handler = $this->createStreamHandler($config, $useBuffer);
+            $logger->pushHandler(new NullHandler());
         }
 
-        // Create a new Monolog and give it the handler from above
-        $logger = new Logger($config->channel);
-        $logger->pushHandler($handler);
+        // For each handler defined for the channel, create and add it to the logger
+        foreach ($handlers as $handlerConfig)
+        {
+            $handler = $this->createStreamHandler($handlerConfig);
+            $logger->pushHandler($handler);
+        }
 
         return $logger;
     }
@@ -54,7 +62,7 @@ final class LoggerFactory
      * @param  mixed $useBuffer
      * @return StreamHandler
      */
-    public function createStreamHandler(LoggingConfig $config, $useBuffer = false) : StreamHandler{
+    public function createStreamHandler(LoggingHandlerConfig $config) : StreamHandler{
         // Create a stream handler 
         $stream = new StreamHandler($config->stream, $config->level);
 
@@ -68,12 +76,6 @@ final class LoggerFactory
 
         // Assign the handler
         $handler = $stream;
-
-        // But, if a buffer is required then default to a debugging handler (NOTE: BufferHandler is stream wrapper)
-        if ($useBuffer === true)
-        {
-            $handler = new BufferHandler($stream, Level::Debug);
-        }
 
         return $handler;
     }

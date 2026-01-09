@@ -16,11 +16,8 @@ $request  = Request::createFromGlobals();
 $response = new Response();
 
 // Create the logger
-$logger = (new LoggerFactory())->createLogger($systemConfig->logging);
-if ($systemConfig->logging->isEnabled())
-{
-    $logger->pushHandler(new ExternalModuleLogHandler($systemConfig->logging->level, true, $module));  
-}
+$loggerFactory = new LoggerFactory($systemConfig->logging);
+$logger = $loggerFactory->createLogger();
 
 // Get the named-key as provided to the API URL
 $namedKey = array_search($systemConfig->apiKeys, $request->get('key', ''));

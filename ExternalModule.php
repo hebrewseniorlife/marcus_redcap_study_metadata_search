@@ -3,6 +3,7 @@ namespace Marcus\StudyMetadataSearch\ExternalModule;
 
 use Infrastructure\Configuration\SystemConfig;
 use Infrastructure\Logging\LoggingConfig;
+use Infrastructure\Logging\LoggingHandlerConfig;
 use Infrastructure\Document\DocumentRepositoryConfig;
 use Infrastructure\Search\SearchEngineConfig;
 use Application\Service\Cron\CronServiceConfig;
@@ -51,8 +52,26 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	 * @return LoggingConfig
 	 */
 	protected function getLoggingConfig() : LoggingConfig {
-		$logLevel = $this->getSystemSetting('log-level') ?? 0;
-		return new LoggingConfig($logLevel);
+		$logLevel 	= $this->getSystemSetting('log-level') ?? 0;
+		$tempFolder = $this->getTempFolder();
+		$prefix	 	= $this->getPrefix();
+
+		$handlerConfigs = [
+			new LoggingHandlerConfig(
+				level: $logLevel,
+				stream: 'php://memory',
+				channels: []
+			),
+			new LoggingHandlerConfig(
+				level: $logLevel,
+				stream: $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.log',
+				channels: [LoggingConfig::DEFAULT_CHANNEL]
+			)
+		];
+
+		$config = new LoggingConfig(handlers: $handlerConfigs);
+		
+		return $config;
 	}
 
 	/**

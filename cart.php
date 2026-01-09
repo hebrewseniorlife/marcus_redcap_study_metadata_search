@@ -15,7 +15,8 @@ $request  = Request::createFromGlobals();
 $response = new Response();
 
 // Create the logger
-$logger = (new LoggerFactory())->createLogger($systemConfig->logging);
+$loggerFactory = new LoggerFactory($systemConfig->logging);
+$logger = $loggerFactory->createLogger();
 
 // Create the controller and handle the request
 $controller = new CartController($logger, $module);

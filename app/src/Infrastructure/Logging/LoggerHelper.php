@@ -5,6 +5,7 @@ namespace Infrastructure\Logging;
 use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
 use Infrastructure\Logging\LoggingConfig;
+use Infrastructure\Logging\LoggingHandlerConfig;
 
 class LoggerHelper
 {
@@ -13,7 +14,7 @@ class LoggerHelper
      *
      * @return string
      */
-    public static function getStreamContents(LoggerInterface $logger, $stream = LoggingConfig::DEFAULT_STREAM): string
+    public static function getStreamContents(LoggerInterface $logger, $stream = LoggingHandlerConfig::DEFAULT_STREAM): string
     {
         $handler = LoggerHelper::getStreamHandler($logger, $stream);
 
@@ -32,7 +33,7 @@ class LoggerHelper
      * @param  string $stream
      * @return StreamHandler|null
      */
-    public static function getStreamHandler(LoggerInterface $logger, string $stream = LoggingConfig::DEFAULT_STREAM) : ? StreamHandler
+    public static function getStreamHandler(LoggerInterface $logger, string $stream = LoggingHandlerConfig::DEFAULT_STREAM) : ? StreamHandler
     {
         $handlers = $logger->getHandlers();
         foreach($handlers as $handler)
