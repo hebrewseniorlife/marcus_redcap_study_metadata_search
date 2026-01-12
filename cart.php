@@ -4,6 +4,7 @@ require_once(__DIR__."/app/bootstrap.php");
 
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
+use Application\Service\ServiceFactory;
 use Interface\ExternalModule\Controller\Api\CartController;
 use Infrastructure\Logging\LoggerFactory;
 
@@ -18,8 +19,13 @@ $response = new Response();
 $loggerFactory = new LoggerFactory($systemConfig->logging);
 $logger = $loggerFactory->createLogger();
 
-// Create the controller and handle the request
-$controller = new CartController($logger, $module);
+// Initialize services
+$serviceFactory = new ServiceFactory($logger);
+$searchService  = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
+$cartService    = $serviceFactory->createCartService($systemConfig->cart);
+
+// Create the controller, provide the services and handle the request
+$controller = new CartController($logger, $cartService, $searchService);
 $response = $controller->handle($request, $response);
 
 // Output the response

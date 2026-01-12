@@ -2,13 +2,9 @@
 
 namespace Interface\ExternalModule\Controller\Api;
 
-use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Domain\Document\DocumentHelper;
-
-use Application\Service\ServiceFactory;
 use Application\Service\Cart\CartService;
 use Application\Service\Search\SearchEngineService;
-
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
@@ -26,17 +22,12 @@ class CartController extends AbstractApiController{
      * @param  mixed $module
      * @return void
      */
-    function __construct(LoggerInterface $logger, ExternalModule $module)
+    function __construct(LoggerInterface $logger, CartService $cartService, SearchEngineService $searchService)
     {
-        parent::__construct($logger, $module);
+        parent::__construct($logger);
 
-        // Load system configuration
-        $systemConfig = $this->module->getSystemConfig();
-
-        // Initialize services
-        $serviceFactory = new ServiceFactory($logger);
-        $this->searchService    = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
-        $this->cartService      = $serviceFactory->createCartService($systemConfig->cart);
+        $this->cartService = $cartService;
+        $this->searchService = $searchService;
     }
 
     /**

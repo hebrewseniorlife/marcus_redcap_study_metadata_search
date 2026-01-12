@@ -5,13 +5,11 @@ namespace Interface\ExternalModule\Controller\Api;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Psr\Log\LoggerInterface;
-use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 
 /**
  * ApiController
  */
 class AbstractApiController {    
-    protected $module;
     protected $logger; 
 
     /**
@@ -20,9 +18,8 @@ class AbstractApiController {
      * @param  mixed $module
      * @return void
      */
-    function __construct(LoggerInterface $logger, ExternalModule $module)
+    function __construct(LoggerInterface $logger)
     {
-        $this->module = $module; 
         $this->logger = $logger;
     }
     
