@@ -6,9 +6,8 @@ use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Psr\Log\LoggerInterface;
 use Infrastructure\Logging\LoggerHelper;
 use Infrastructure\Logging\JsonLogReader as LogReader;
+use Application\Service\ServiceFactory;
 use Application\Service\Project\ProjectService;
-use Infrastructure\Document\DocumentRepositoryFactory;
-use Infrastructure\Search\SearchEngineFactory;
 use Application\Service\Search\SearchEngineService;
 use Application\Service\Cron\CronService;
 use Symfony\Component\HttpFoundation\Request as Request;
@@ -35,19 +34,12 @@ class ControlCenterController extends AbstractWebController {
         parent::__construct($logger, $module);
 
         // Load system configuration
-        $systemConfig = $this->module->getSystemConfig();
-
-        // Initialize document repository
-        $documentRepositoryFactory = new DocumentRepositoryFactory($logger);
-        $documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
-        
-        // Create search engine
-        $searchEngineFactory = new SearchEngineFactory($logger);
-        $searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);
+        $systemConfig = $this->module->getSystemConfig();      
         
         // Initialize services
-        $this->searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
-        $this->projectService   = new ProjectService($module);
+        $serviceFactory = new ServiceFactory($logger);
+        $this->searchService    = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
+        $this->projectService   = $serviceFactory->createProjectService($module);
         $this->cronService      = new CronService($logger, $systemConfig->cron, $module);
     }
     

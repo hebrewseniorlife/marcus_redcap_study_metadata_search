@@ -4,11 +4,9 @@ namespace Interface\ExternalModule\Controller\Web;
 
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Psr\Log\LoggerInterface;
-use Infrastructure\Document\DocumentRepositoryFactory;
-use Infrastructure\Search\SearchEngineFactory;
+use Application\Service\ServiceFactory;
 use Application\Service\Search\SearchEngineService;
 use Application\Service\Cart\CartService;
-use Application\Service\Cart\CartConfig;
 use Application\Service\Project\ProjectService;
 use Domain\Search\SearchEngineResult;
 use Symfony\Component\HttpFoundation\Request as Request;
@@ -36,19 +34,10 @@ class ProjectController extends AbstractWebController {
         
         $systemConfig = $this->module->getSystemConfig();
 
-        // Initialize document repositoryy
-        $documentRepositoryFactory = new DocumentRepositoryFactory($logger);
-        $documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
-     
-        // Create search engine
-        $searchEngineFactory = new SearchEngineFactory($logger);
-        $searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);
-
-        // Initialize services
-        $this->searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
-        $this->projectService   = new ProjectService($module);
-
-        $this->cartService      = new CartService(new CartConfig());
+        $serviceFactory = new ServiceFactory($logger);
+        $this->searchService    = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
+        $this->projectService   = $serviceFactory->createProjectService($module);
+        $this->cartService      = $serviceFactory->createCartService($systemConfig->cart);
     }
 
     /**

@@ -4,8 +4,7 @@ namespace Interface\ExternalModule\Controller\Api;
 
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 
-use Infrastructure\Document\DocumentRepositoryFactory;
-use Infrastructure\Search\SearchEngineFactory;
+use Application\Service\ServiceFactory;
 use Application\Service\Search\SearchEngineService;
 
 use Symfony\Component\HttpFoundation\Request as Request;
@@ -29,16 +28,9 @@ class SearchEngineController extends AbstractWebController{
         // Load system configuration
         $systemConfig = $this->module->getSystemConfig();
 
-        // Initialize document repositoryy
-        $documentRepositoryFactory = new DocumentRepositoryFactory($logger);
-        $documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
-     
-        // Create search engine
-        $searchEngineFactory = new SearchEngineFactory($logger);
-        $searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);
-
         // Initialize services
-        $this->searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
+        $serviceFactory = new ServiceFactory($logger);
+        $this->searchService    = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
     }
 
     /**

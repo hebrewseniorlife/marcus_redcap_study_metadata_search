@@ -2,10 +2,12 @@
 
 namespace Application\Service\Project;
 
+use Psr\Log\LoggerInterface;
 use Domain\Document\Document;
 use Domain\Project\Project;
 use function Stringy\create as s;
 use REDCap as REDCap;
+use \ExternalModules\AbstractExternalModule;
 
 /**s
  * ProjectService
@@ -18,18 +20,22 @@ class ProjectService {
      */
     protected $module;
 
+        /**
+     * logger
+     *
+     * @var LoggerInterface
+     */
+    protected $logger;
+
     /**
      * __construct
      *
      * @param  mixed $module
      * @return void
      */
-    function __construct($module)
+    function __construct(LoggerInterface $logger, AbstractExternalModule $module)
     {
-        if (!isset($module))
-        {
-            throw new \Exception('Module may not be null.');
-        }
+        $this->logger = $logger;
         $this->module = $module;
     }
     
