@@ -3,11 +3,15 @@
 namespace Domain\Document\Contract;
 
 use Domain\Document\Document;
+use Infrastructure\Document\DocumentRepositoryConfig;
 
 /**
  * DocumentRepository Interface
  */
 interface DocumentRepository {
+
+    public function getConfig(): DocumentRepositoryConfig;
+    
     /**
      * Saves the provided Document instance to the repository.
      *

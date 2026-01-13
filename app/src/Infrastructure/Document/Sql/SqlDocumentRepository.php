@@ -26,6 +26,8 @@ class SqlDocumentRepository implements DocumentRepository{
     /** @var string */
     private string $dsn = "";
 
+    protected DocumentRepositoryConfig $config;
+
     /**
      * __construct
      * 
@@ -37,7 +39,8 @@ class SqlDocumentRepository implements DocumentRepository{
     function __construct(LoggerInterface $logger = null, DocumentRepositoryConfig $config)
     {
         $this->logger = $logger;
-        
+        $this->config = $config;
+
         $this->initialize($config->dsn);
     }
 
@@ -79,6 +82,15 @@ class SqlDocumentRepository implements DocumentRepository{
      */
     function getDSN(): string {
         return $this->dsn;
+    }
+
+    /**
+     * Gets the repository configuration
+     *
+     * @return DocumentRepositoryConfig
+     */
+    function getConfig() : DocumentRepositoryConfig {
+        return $this->config;
     }
 
     /**
