@@ -5,7 +5,6 @@ namespace Infrastructure\Search;
 use Psr\Log\LoggerInterface;
 use Domain\Search\Contract\SearchEngine;
 use Infrastructure\Search\SearchEngineConfig;
-use Infrastructure\Configuration\SettingsHelper;
 
 class SearchEngineFactory
 {

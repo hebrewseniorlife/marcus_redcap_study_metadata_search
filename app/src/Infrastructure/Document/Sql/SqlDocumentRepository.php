@@ -6,7 +6,6 @@ use Domain\Document\Contract\DocumentRepository;
 use Infrastructure\Document\DocumentRepositoryConfig;
 use Domain\Document\Document;
 use Domain\Project\Project;
-use Infrastructure\Settings\SettingsHelper;
 use Psr\Log\LoggerInterface;
 use RedBeanPHP\R as R;
 
