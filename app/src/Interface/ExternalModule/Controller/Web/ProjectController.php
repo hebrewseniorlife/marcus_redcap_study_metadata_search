@@ -4,7 +4,6 @@ namespace Interface\ExternalModule\Controller\Web;
 
 use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Psr\Log\LoggerInterface;
-use Application\Service\ServiceFactory;
 use Application\Service\Search\SearchEngineService;
 use Application\Service\Cart\CartService;
 use Application\Service\Project\ProjectService;
@@ -28,16 +27,13 @@ class ProjectController extends AbstractWebController {
      * @param  mixed $module
      * @return void
      */
-    function __construct(LoggerInterface $logger, ExternalModule $module)
+    function __construct(LoggerInterface $logger, ExternalModule $module, ProjectService $projectService, SearchEngineService $searchService, CartService $cartService)
     {
         parent::__construct($logger, $module);
-        
-        $systemConfig = $this->module->getSystemConfig();
 
-        $serviceFactory = new ServiceFactory($logger);
-        $this->searchService    = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
-        $this->projectService   = $serviceFactory->createProjectService($module);
-        $this->cartService      = $serviceFactory->createCartService($systemConfig->cart);
+        $this->projectService = $projectService;
+        $this->searchService = $searchService;        
+        $this->cartService = $cartService;
     }
 
     /**

@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Infrastructure\Logging\LoggerFactory;
+use Application\Service\ServiceFactory;
 use Infrastructure\ExternalModule\Logging\ExternalModuleLogHandler;
 use Interface\ExternalModule\Controller\Web\ProjectController;
 
@@ -20,7 +21,14 @@ $response = new Response();
 $loggerFactory = new LoggerFactory($systemConfig->logging);
 $logger = $loggerFactory->createLogger();
 
-$controller = new ProjectController($logger, $module);
+// Initialize the services
+$serviceFactory = new ServiceFactory($logger);
+$searchService  = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
+$projectService = $serviceFactory->createProjectService($module);
+$cartService    = $serviceFactory->createCartService($systemConfig->cart);
+
+// Create a new controller, wire the services and handle the response
+$controller = new ProjectController($logger, $module, $projectService, $searchService, $cartService);
 $response = $controller->handle($request, $response);
 
 if ($response instanceof JsonResponse)
