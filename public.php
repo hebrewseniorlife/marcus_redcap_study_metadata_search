@@ -3,29 +3,31 @@
 require_once(__DIR__.'/app/bootstrap.php');
 
 use Application\Service\ServiceFactory;
+use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
 use Interface\ExternalModule\Controller\Api\SearhchEngineController;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Infrastructure\Logging\LoggerFactory;
 
-// Get the system configuration from the REDCap module
-$systemConfig = $module->getSystemConfig();
+// Get the configuration from the module
+$provider = new ExternalModuleConfigProvider($module);
 
 // Create the request and response objects
 $request  = Request::createFromGlobals();
 $response = new Response();
 
 // Create the logger
-$loggerFactory = new LoggerFactory($systemConfig->logging);
+$loggerFactory = new LoggerFactory($provider->getLoggingConfig());
 $logger = $loggerFactory->createLogger();
 
 // Initialize services
 $serviceFactory = new ServiceFactory($logger);
-$searchService  = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
+$searchService  = $serviceFactory->createSearchEngineService($provider->getDocumentRepositoryConfig(), $provider->getSearchEngineConfig());
 
 
 // Get the named-key as provided to the API URL
-$namedKey = array_search($systemConfig->apiKeys, $request->get('key', ''));
+$apiKeys  = $provider->getApiKeys(); 
+$namedKey = array_search($apiKeys, $request->get('key', ''));
 
 if ($namedKey !== null)
 {

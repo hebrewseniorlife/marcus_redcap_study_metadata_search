@@ -7,25 +7,25 @@ use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Infrastructure\Logging\LoggerFactory;
 use Application\Service\ServiceFactory;
-use Infrastructure\ExternalModule\Logging\ExternalModuleLogHandler;
+use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
 use Interface\ExternalModule\Controller\Web\ProjectController;
 
-// Get the system configuration from the REDCap module
-$systemConfig = $module->getSystemConfig();
+// Get the configuration from the module
+$provider = new ExternalModuleConfigProvider($module);
 
 // Create the request and response objects
 $request  = Request::createFromGlobals();
 $response = new Response();
 
 // Create the logger
-$loggerFactory = new LoggerFactory($systemConfig->logging);
+$loggerFactory = new LoggerFactory($provider->getLoggingConfig());
 $logger = $loggerFactory->createLogger();
 
 // Initialize the services
 $serviceFactory = new ServiceFactory($logger);
-$searchService  = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
+$searchService  = $serviceFactory->createSearchEngineService($provider->getDocumentRepositoryConfig(), $provider->getSearchEngineConfig());
 $projectService = $serviceFactory->createProjectService($module);
-$cartService    = $serviceFactory->createCartService($systemConfig->cart);
+$cartService    = $serviceFactory->createCartService($provider->getCartConfig());
 
 // Create a new controller, wire the services and handle the response
 $controller = new ProjectController($logger, $module, $projectService, $searchService, $cartService);

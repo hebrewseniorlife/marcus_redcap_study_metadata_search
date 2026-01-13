@@ -8,7 +8,8 @@ use Infrastructure\Logging\LoggerHelper;
 use Infrastructure\Logging\JsonLogReader as LogReader;
 use Application\Service\Project\ProjectService;
 use Application\Service\Search\SearchEngineService;
-use Application\Service\Cron\CronService;
+use Application\Service\Scheduler\SchedulerService;
+use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
 use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Symfony\Component\HttpFoundation\JsonResponse as JsonResponse;
@@ -20,7 +21,8 @@ class ControlCenterController extends AbstractWebController {
     
     protected SearchEngineService $searchService;
     protected ProjectService $projectService;
-    protected CronService $cronService;
+    protected SchedulerService $schedulerService;
+
 
     /**
      * __construct
@@ -28,16 +30,18 @@ class ControlCenterController extends AbstractWebController {
      * @param  mixed $module
      * @return void
      */
-    function __construct(LoggerInterface $logger, ExternalModule $module, ProjectService $projectService, SearchEngineService $searchService)
+    function __construct(
+        LoggerInterface $logger, 
+        ExternalModule $module, 
+        ProjectService $projectService, 
+        SearchEngineService $searchService,
+        SchedulerService $schedulerService)
     {
         parent::__construct($logger, $module);
 
         $this->projectService = $projectService;
         $this->searchService = $searchService;
-
-        // Load system configuration
-        $systemConfig = $this->module->getSystemConfig();      
-        $this->cronService = new CronService($logger, $systemConfig->cron, $module);
+        $this->schedulerService = $schedulerService;
     }
     
     /**
@@ -67,6 +71,26 @@ class ControlCenterController extends AbstractWebController {
             break;                
         }
     }
+
+    /**
+     * Retrieves log entries from the system.
+     *
+     * @return array An array containing log entries
+     */
+    private function getLogEntries() : array {
+        $provider = new ExternalModuleConfigProvider($this->module);
+        $logging  = $provider->getLoggingConfig();
+
+        $logEntries = [];
+        foreach ($logging->handlers as $handler) {
+            if (is_file($handler->stream)){
+                $reader = new LogReader($handler->stream);
+                $logEntries = array_merge($logEntries, $reader->since('2 hours'));
+            }
+        }
+
+        return $logEntries;
+    }
     
     /**
      * view
@@ -78,21 +102,14 @@ class ControlCenterController extends AbstractWebController {
     function view(Request $request, Response $response) : Response { 
         $projects = $this->projectService->getProjects();
 
-        
-        $tempFolder     = $this->module->getTempFolder();
-        $prefix	 	    = $this->module->getPrefix();
-        $logFilePath    = $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.ndjson';
+        $schedulerConfig = $this->schedulerService->getConfig();
 
-        $reader = new LogReader($logFilePath);
-        $recent = $reader->since('2 hours');
-
-        $cron               = $this->cronService->getDetails();
-        // $cron["logs"]       = $this->cronService->getLogs();
-        $cron["logs"]       = $recent;
-        $cron["enabled"]    = $this->module->getSystemSetting("autorebuild-enabled");
-        if ($cron["enabled"] === "enabled")
+        $cron               = []; // $this->cronService->getDetails();
+        $cron["logs"]       = $this->getLogEntries();
+        $cron["enabled"]    = ($schedulerConfig->enabled) ? "enabled" : "disabled";
+        if ($schedulerConfig->enabled)
         {
-            $cron["schedule"] = $this->cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("autorebuild-pattern"));
+            $cron["schedule"] = []; // $this->cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("autorebuild-pattern"));
         }
 
         $context = $this->createContext("System View", [

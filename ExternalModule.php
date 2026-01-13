@@ -1,16 +1,9 @@
 <?php
 namespace Marcus\StudyMetadataSearch\ExternalModule;
 
-use Infrastructure\Configuration\SystemConfig;
-use Infrastructure\Logging\LoggingConfig;
-use Infrastructure\Logging\LoggingHandlerConfig;
-use Infrastructure\Document\DocumentRepositoryConfig;
-use Infrastructure\Search\SearchEngineConfig;
+use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
 use Application\Service\Cron\CronServiceConfig;
-
 use Infrastructure\Logging\LoggerFactory;
-use Infrastructure\ExternalModule\Logging\ExternalModuleLogHandler;
-
 use Application\Service\Project\ProjectService;
 use Application\Service\Search\SearchEngineService;
 use Application\Service\Cron\CronService;
@@ -28,129 +21,6 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	 */
 	public function __construct() {
 		parent::__construct();
-	}
-
-	/**
-	 * getSystemConfig
-	 *
-	 * @return SystemConfig
-	 */
-	public function getSystemConfig() : SystemConfig {
-		$loggingConfig 		= $this->getLoggingConfig();
-		$apiKeys	   		= $this->getApiKeys();
-		$tempFolder	   		= $this->getTempFolder();
-		$searchEngineConfig = $this->getSearchEngineConfig();
-		$documentRepoConfig = $this->getDocumentRepositoryConfig();
-		$cronServiceConfig	= $this->getCronServiceConfig();
-
-		return new SystemConfig($loggingConfig, $tempFolder, $documentRepoConfig, $searchEngineConfig, $cronServiceConfig, $apiKeys);
-	}
-
-	/**
-	 * getLogConfig
-	 *
-	 * @return LoggingConfig
-	 */
-	protected function getLoggingConfig() : LoggingConfig {
-		$logLevel 	= $this->getSystemSetting('log-level') ?? 0;
-		$tempFolder = $this->getTempFolder();
-		$prefix	 	= $this->getPrefix();
-
-		$handlerConfigs = [
-			new LoggingHandlerConfig(
-				level: $logLevel,
-				stream: 'php://memory',
-				channels: []
-			),
-			new LoggingHandlerConfig(
-				level: $logLevel,
-				stream: $tempFolder.DIRECTORY_SEPARATOR.$prefix.'.ndjson',
-				channels: [LoggingConfig::DEFAULT_CHANNEL]
-			)
-		];
-
-		$config = new LoggingConfig(handlers: $handlerConfigs);
-		
-		return $config;
-	}
-
-	/**
-	 * getNamedApiKeys
-	 *
-	 * @return array
-	 */
-	public function getApiKeys(): array {
-		$apiKeys = [];
-
-		$keys   = $this->getSystemSetting("api-key");
-        $names  = $this->getSystemSetting("api-name");
-
-		foreach ($keys as $index => $key) {
-			if (strlen($key) > 0) {
-				$apiKeys[$key] = $names[$index] ?? "Unnamed Key";
-			}
-		}
-
-		return $apiKeys;
-	}
-
-	/**
-	 * getTempDir
-	 *
-	 * @return string
-	 */
-	public function getTempFolder() : string {
-        $tempFolder = $this->getSystemSetting("temp-folder") ?? null;
-        switch($tempFolder){
-            case 'custom' :
-                $customFolderPath   = $this->getSystemSetting("custom-temp-folder");
-                $tempFolderPath     = realpath($customFolderPath); // May need to be upgraded in future version...
-                break;
-            case 'system':
-                $tempFolderPath = sys_get_temp_dir();
-                break;
-            case 'redcap':
-            default:
-                $tempFolderPath = constant("APP_PATH_TEMP");
-                break;
-        }
-        
-        if (!is_dir($tempFolderPath))
-        {
-            throw new Exception("Temp folder ($tempFolderPath) is not a directory. See system-level module configuration.");
-        }                
-
-        return $tempFolderPath . DIRECTORY_SEPARATOR . $this->PREFIX; 
-	}
-
-
-	/**
-	 * getSearchEngineConfig
-	 *
-	 * @return SearchEngineConfig
-	 */
-	public function getSearchEngineConfig() : SearchEngineConfig {
-		$providerName = $this->getSystemSetting('search-engine-provider') ?? 'TNTSearchEngine';
-		$configValue  = $this->getSystemSetting('search-engine-config') ?? '{}';
-		$tempFolderPath = $this->getTempFolder();
-
-		$config = new SearchEngineConfig($providerName);
-		$config->settings["config"] = json_decode($configValue, true);
-		$config->settings["temp_folder_path"] = $tempFolderPath;
-
-		return $config;
-	}
-
-	/**
-	 * getDocumentRepositoryConfig
-	 *
-	 * @return array
-	 */
-	public function getDocumentRepositoryConfig() : DocumentRepositoryConfig {
-		$tempFolder = $this->getTempFolder();
-		$dsn 		= "sqlite:".$tempFolder.DIRECTORY_SEPARATOR."documents.sqlite";
-
-		return new DocumentRepositoryConfig($tempFolder, $dsn);
 	}
 
 	/**

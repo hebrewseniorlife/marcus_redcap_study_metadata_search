@@ -6,27 +6,28 @@ use Symfony\Component\HttpFoundation\Request as Request;
 use Symfony\Component\HttpFoundation\Response as Response;
 use Infrastructure\Logging\LoggerFactory;
 use Application\Service\ServiceFactory;
-use Infrastructure\ExternalModule\Logging\ExternalModuleLogHandler;
+use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
 use Interface\ExternalModule\Controller\Web\ControlCenterController;
 
-// Get the system configuration from the REDCap module
-$systemConfig = $module->getSystemConfig();
+// Get the configuration from the module
+$provider = new ExternalModuleConfigProvider($module);
 
 // Create the request and response objects
 $request  = Request::createFromGlobals();
 $response = new Response();
 
 // Create the logger
-$loggerFactory = new LoggerFactory($systemConfig->logging);
+$loggerFactory = new LoggerFactory($provider->getLoggingConfig());
 $logger = $loggerFactory->createLogger();
 
 // Initialize services
 $serviceFactory = new ServiceFactory($logger);
-$searchService  = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
-$projectService = $serviceFactory->createProjectService($module);
+$searchService      = $serviceFactory->createSearchEngineService($provider->getDocumentRepositoryConfig(), $provider->getSearchEngineConfig());
+$projectService     = $serviceFactory->createProjectService($module);
+$schedulerService   = $serviceFactory->createSchedulerService($provider->getSchedulerConfig());
 
 // Create the controller and handle the request
-$controller = new ControlCenterController($logger, $module, $projectService, $searchService);
+$controller = new ControlCenterController($logger, $module, $projectService, $searchService, $schedulerService);
 $response = $controller->handle($request, $response);
 
 // Output the response
