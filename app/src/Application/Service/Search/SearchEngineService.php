@@ -25,14 +25,14 @@ class SearchEngineService {
      *
      * @var SearchEngine
      */
-    protected $engine;
+    protected SearchEngine $engine;
 
     /**
      * repository
      *
      * @var DocumentRepository
      */
-    protected $repository;
+    protected DocumentRepository $repository;
    
     /**
      * __construct
