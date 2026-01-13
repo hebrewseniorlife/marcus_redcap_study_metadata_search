@@ -6,7 +6,6 @@ use Marcus\StudyMetadataSearch\ExternalModule\ExternalModule;
 use Psr\Log\LoggerInterface;
 use Infrastructure\Logging\LoggerHelper;
 use Infrastructure\Logging\JsonLogReader as LogReader;
-use Application\Service\ServiceFactory;
 use Application\Service\Project\ProjectService;
 use Application\Service\Search\SearchEngineService;
 use Application\Service\Cron\CronService;
@@ -29,18 +28,16 @@ class ControlCenterController extends AbstractWebController {
      * @param  mixed $module
      * @return void
      */
-    function __construct(LoggerInterface $logger, ExternalModule $module)
+    function __construct(LoggerInterface $logger, ExternalModule $module, ProjectService $projectService, SearchEngineService $searchService)
     {
         parent::__construct($logger, $module);
 
+        $this->projectService = $projectService;
+        $this->searchService = $searchService;
+
         // Load system configuration
         $systemConfig = $this->module->getSystemConfig();      
-        
-        // Initialize services
-        $serviceFactory = new ServiceFactory($logger);
-        $this->searchService    = $serviceFactory->createSearchEngineService($systemConfig->documentRepository, $systemConfig->searchEngine);
-        $this->projectService   = $serviceFactory->createProjectService($module);
-        $this->cronService      = new CronService($logger, $systemConfig->cron, $module);
+        $this->cronService = new CronService($logger, $systemConfig->cron, $module);
     }
     
     /**
