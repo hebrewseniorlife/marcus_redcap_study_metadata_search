@@ -1,6 +1,6 @@
 <?php
 
-namespace Infrastructure\ExternalModule\Logging;
+namespace Interface\ExternalModule\Logging;
 
 use Monolog\Logger;
 use Monolog\LogRecord;
