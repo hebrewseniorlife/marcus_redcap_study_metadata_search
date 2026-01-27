@@ -4,10 +4,7 @@ namespace Marcus\StudyMetadataSearch\ExternalModule;
 use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
 use Application\Service\Cron\CronServiceConfig;
 use Infrastructure\Logging\LoggerFactory;
-use Application\Service\Project\ProjectService;
-use Application\Service\Search\SearchEngineService;
-use Application\Service\Cron\CronService;
-
+use Application\Service\ServiceFactory;
 
 /**
  * ExternalModule  - (required) Abstract implementation of REDCap module
@@ -21,26 +18,6 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 	 */
 	public function __construct() {
 		parent::__construct();
-	}
-
-	/**
-	 * getCronConfig
-	 *
-	 * @return CronConfig
-	 */
-	public function getCronServiceConfig() : CronServiceConfig {
-		// Get the autorebuild settings
-		$enabledSetting = $this->getSystemSetting('autorebuild-enabled') ?? 'disabled';
-		$enabled = ($enabledSetting === 'enabled') ? true : false;
-
-		// Get the autorebuild pattern
-		$pattern = $this->getSystemSetting('autorebuild-pattern') ?? '';
-
-		// Get the cron jobs (see config.json)
-		$config = $this->getConfig();
-
-		// Create and return the cron config
-		return new CronServiceConfig($enabled, $pattern, $config["crons"]);
 	}
 
 	/**
@@ -102,59 +79,23 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 
 		$message = "";
 
-		// Get the system configuration from the REDCap module
-		$systemConfig = $this->getSystemConfig();
-		$cronConfig   	= $systemConfig->cron;
-
-		// Modify the logging config to log to output
-		$loggingConfig 	= $systemConfig->logging;
-		$loggingConfig->stream = 'php://output';
+		// Get the configuration from the module
+		$provider = new ExternalModuleConfigProvider($module);
+		$schedulerConfig = $provider->getSchedulerConfig();
 
 		// Create the logger
-		$loggerFactory = new LoggerFactory();
-		$logger = $loggerFactory->createLogger($loggingConfig);
+		$loggerFactory = new LoggerFactory($provider->getLoggingConfig());
+		$logger = $loggerFactory->createLogger();
 
-		// Add the REDCap log handler if logging is enabled.
-		if ($systemConfig->logging->isEnabled())
-		{
-			$logger->pushHandler(new ExternalModuleLogHandler($systemConfig->logging->level, true, $this));  
-		}
-
-		// Log whether automatic reindex is enabled or disabled.
-		$enabled = $cronConfig->enabled ? "enabled" : "disabled";
-		$logger->info("Automatic reindex is $enabled.");	
+		// Initialize the service factory
+		$serviceFactory = new ServiceFactory($logger);
+		$schedulerService 	= $serviceFactory->createSchedulerService($schedulerConfig);
+		$searchService      = $serviceFactory->createSearchEngineService($provider->getDocumentRepositoryConfig(), $provider->getSearchEngineConfig());
+		$projectService     = $serviceFactory->createProjectService($module);
 
 
-		// Get the cron service
-		$cronService = new CronService($logger, $cronConfig, $this);
-
-		// Get the details inclulding the cron pattern and schedule
-		$details  = $cronService->getDetails();
-		$pattern  = $cronConfig->pattern;
-		$schedule = $cronService->getSchedule($details['last_start_time'], $pattern);
-
-		$is_due = ($schedule['is_due'] === true) ? "true" : "false"; 
-		$logger->info("Automatic reindex scheduled for {$schedule['next_run_time']} (due={$is_due}).");
-
-		// if the schedule says we are due to run then 
-		if ($schedule['is_due'] === true){
-			// Log the start of the cron job (in REDCap)
-			$cronService->logStart();
-
-			try
-			{
-				// Initialize document repository
-				$documentRepositoryFactory = new DocumentRepositoryFactory($logger);
-				$documentRepository = $documentRepositoryFactory->createDocumentRepository($systemConfig->documentRepository);
-				
-				// Create search engine
-				$searchEngineFactory = new SearchEngineFactory($logger);
-				$searchEngine = $searchEngineFactory->createSearchEngine($systemConfig->searchEngine);				
-
-				// Initialize services
-				$searchService    = new SearchEngineService($logger, $documentRepository, $searchEngine);
-				$projectService   = new ProjectService($module);
-
+		$schedulerService->runScheduledJob(function() use ($logger, $projectService, $searchService, &$message) {
+			try {
 				// Populate the projects into the search engine
 				$projects = $projectService->getProjects();
 				$searchService->populateProjects($projects);
@@ -172,12 +113,7 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 			{
 				$logger->info($message);
 			}
-			
-			// Log the stop of the cron job (in REDCap)
-			$cronService->logStop();
-		}
-
-		return $message;
+		});
 	}
 
 	/**

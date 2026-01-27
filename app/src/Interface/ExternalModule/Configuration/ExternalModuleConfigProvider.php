@@ -124,7 +124,10 @@ class ExternalModuleConfigProvider implements ConfigProvider {
 		// Get the autorebuild pattern
 		$pattern = $this->module->getSystemSetting('autorebuild-pattern') ?? '';
 
-        return new SchedulerConfig($enabled, $pattern);
+        // Get the temp folder
+        $tempFolder = $this->getTempFolder();
+
+        return new SchedulerConfig($enabled, $pattern, $tempFolder);
     }
 
     /**

@@ -101,22 +101,15 @@ class ControlCenterController extends AbstractWebController {
      */
     function view(Request $request, Response $response) : Response { 
         $projects = $this->projectService->getProjects();
-
-        $schedulerConfig = $this->schedulerService->getConfig();
-
-        $cron               = []; // $this->cronService->getDetails();
-        $cron["logs"]       = $this->getLogEntries();
-        $cron["enabled"]    = ($schedulerConfig->enabled) ? "enabled" : "disabled";
-        if ($schedulerConfig->enabled)
-        {
-            $cron["schedule"] = []; // $this->cronService->getSchedule($cron["last_start_time"], $this->module->getSystemSetting("autorebuild-pattern"));
-        }
+        $lastJob  = $this->schedulerService->getLastScheduledJobInfo();
 
         $context = $this->createContext("System View", [
             "engine"     => $this->searchService->getSearchEngine()->getConfig(),
             "projects"   => $projects,
             "stats"      => $this->searchService->getStats(),
-            "cron"       => $cron,
+            "schedule"   => $this->schedulerService->getConfig(),
+            "last_job"   => $lastJob,
+            "logs"       => $this->getLogEntries(),
             "paths"      => array(
                 "purge"  => $this->module->getUrl('control-center.php')."&action=purge",
                 "create_index"  => $this->module->getUrl('control-center.php')."&action=create-index",
@@ -236,7 +229,7 @@ class ControlCenterController extends AbstractWebController {
         
         $log = LoggerHelper::getStreamContents($this->logger);
 
-        $context = $this->createContext("System Purge (All)", [
+        $context = $this->createContext("Create Index", [
             "engine"     => $this->searchService->getSearchEngine()->getConfig(),
             "projects"   => [],
             "stats"      => $this->searchService->getStats(),

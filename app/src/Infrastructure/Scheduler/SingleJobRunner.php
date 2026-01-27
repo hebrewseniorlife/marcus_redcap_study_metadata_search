@@ -53,7 +53,7 @@ final class SingleJobRunner
         $tz = new DateTimeZone($this->config->timezone);
         $nowLocal = new DateTimeImmutable('now', $tz);
 
-        $cron = CronExpression::factory($this->config->cronExpr);
+        $cron = CronExpression::factory($this->config->cronExpression);
 
         if (!$cron->isDue($nowLocal)) {
             return 0;
@@ -129,5 +129,15 @@ final class SingleJobRunner
         if (!rename($tmp, $this->config->stateFilePath)) {
             throw new RuntimeException('Failed to replace scheduler state file');
         }
+    }
+
+    /**
+     * Retrieves information about the last run of the job.
+     *
+     * @return array The last run information.
+     */
+    public function getLastRunInfo(): array
+    {
+        return $this->loadState();
     }
 }

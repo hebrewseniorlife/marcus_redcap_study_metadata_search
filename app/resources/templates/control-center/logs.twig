@@ -1,0 +1,44 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <h5 class="card-header">Logs <small>(limit=100)</small></h5>
+      <div class="card-body">
+        <table class="table" id="log-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Message</th>
+            </tr>          
+          </thead>
+          <tbody>
+            {% for log in logs %}
+              <tr>
+                <td>{{log.datetime}}</td>
+                <td>{{log.message}}</td>
+              </tr>        
+            {% else %}
+              <tr>
+                <td colspan="3">No logs available</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>      
+</div>
+
+{% if logs | length > 0 %}
+<script type="text/javascript">
+$(document).ready(function() {
+      $('#log-table').DataTable({
+        dom: 'fltip'
+        , "pageLength": 10
+        , "oLanguage": {
+            "sSearch": "Filter"
+        }
+        ,"order": [[ 0, "desc" ]]
+    });
+});
+</script>
+{% endif %}
