@@ -80,7 +80,7 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 		$message = "";
 
 		// Get the configuration from the module
-		$provider = new ExternalModuleConfigProvider($module);
+		$provider = new ExternalModuleConfigProvider($this);
 		$schedulerConfig = $provider->getSchedulerConfig();
 
 		// Create the logger
@@ -91,9 +91,11 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 		$serviceFactory = new ServiceFactory($logger);
 		$schedulerService 	= $serviceFactory->createSchedulerService($schedulerConfig);
 		$searchService      = $serviceFactory->createSearchEngineService($provider->getDocumentRepositoryConfig(), $provider->getSearchEngineConfig());
-		$projectService     = $serviceFactory->createProjectService($module);
+		$projectService     = $serviceFactory->createProjectService($this);
 
+		$message = "The search engine index rebuild has been scheduled.";
 
+		// Run the scheduled job to rebuild the search engine index
 		$schedulerService->runScheduledJob(function() use ($logger, $projectService, $searchService, &$message) {
 			try {
 				// Populate the projects into the search engine
@@ -114,6 +116,8 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 				$logger->info($message);
 			}
 		});
+
+		return $message;
 	}
 
 	/**

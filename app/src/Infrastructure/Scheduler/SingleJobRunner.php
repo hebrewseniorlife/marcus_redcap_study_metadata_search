@@ -50,36 +50,45 @@ final class SingleJobRunner
      */
     private function runIfDue(callable $job): int
     {
-        $tz = new DateTimeZone($this->config->timezone);
-        $nowLocal = new DateTimeImmutable('now', $tz);
+        $tz                 = new DateTimeZone($this->config->timezone);
+        $currentDateTime    = new DateTimeImmutable('now', $tz);
 
+        // Load the last run state
+        $state = $this->loadState();   
+
+        // Determine the last time the job was run (default to now if never run)
+        $lastRunAt = $state['last_run_at'] ?? $currentDateTime->format('Y-m-d H:i');
+        $lastRunDateTime = DateTimeImmutable::createFromFormat('Y-m-d H:i', $lastRunAt);
+
+        // // Determine the last due time the job was scheduled to run (default to now if never run)
+        // $lastDueMinute   = $state['last_due_minute'] ?? $currentDateTime->format('Y-m-d H:i');
+        // $lastDueDateTime = DateTimeImmutable::createFromFormat('Y-m-d H:i', $lastDueMinute);
+
+        // Create a cron expression parser using the configured expression (e.g. @weekly)
         $cron = CronExpression::factory($this->config->cronExpression);
 
-        if (!$cron->isDue($nowLocal)) {
-            return 0;
-        }
+        // Calculate the next due date based on the last run date of the cron expression
+        $nextDueDateTime = $cron->getNextRunDate($lastRunAt, 0, false);
 
-        $state = $this->loadState();
-        $scheduledMinuteKey = $nowLocal->format('Y-m-d H:i');
-
-        if (($state['last_due_minute'] ?? null) === $scheduledMinuteKey) {
-            return 0;
+        // If the current time is before the next due time, do not run the job
+        if ($currentDateTime > $lastRunDateTime && $currentDateTime < $nextDueDateTime) {
+            return 0; // Not yet due
         }
 
         try {
             $job();
             $this->saveState([
                 'job_key' => $this->config->jobKey,
-                'last_due_minute' => $scheduledMinuteKey,
-                'last_run_at' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DATE_ATOM),
+                'next_due_minute' => $nextDueDateTime->format('Y-m-d H:i'),
+                'last_run_at' => $currentDateTime->format('Y-m-d H:i'),
                 'status' => 'success',
             ]);
             return 1;
         } catch (Throwable $e) {
             $this->saveState([
                 'job_key' => $this->config->jobKey,
-                'last_due_minute' => $scheduledMinuteKey,
-                'last_run_at' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DATE_ATOM),
+                'next_due_minute' => $nextDueDateTime->format('Y-m-d H:i'),
+                'last_run_at' => $currentDateTime->format('Y-m-d H:i'),
                 'status' => 'failed',
                 'error' => $e->getMessage(),
             ]);
