@@ -8,6 +8,7 @@ use Infrastructure\Logging\LoggingConfig;
 use Infrastructure\Search\SearchEngineConfig;
 use Infrastructure\FileSystem\FileSystemConfig;
 use Infrastructure\Scheduler\SchedulerConfig;
+use Application\Service\Project\ProjectListConfig;
 
 /**
  * Provides configuration objects required by infrastructure factories/services.
@@ -59,4 +60,12 @@ interface ConfigProvider
      * @return SchedulerConfig The scheduler configuration object containing scheduling settings and parameters.
      */
     public function getSchedulerConfig() : SchedulerConfig;
+
+
+    /**
+     * Retrieves the project list configuration.
+     *
+     * @return ProjectListConfig The project list configuration object containing project settings.
+     */
+    public function getProjectListConfig() : ProjectListConfig;
 }

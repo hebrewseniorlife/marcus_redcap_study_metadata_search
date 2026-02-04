@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response as Response;
 use Infrastructure\Logging\LoggerFactory;
 use Application\Service\ServiceFactory;
 use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
+use Interface\ExternalModule\Project\ExternalModuleProjectRepository;
 use Interface\ExternalModule\Controller\Web\ControlCenterController;
 
 // Get the configuration from the module
@@ -20,10 +21,13 @@ $response = new Response();
 $loggerFactory = new LoggerFactory($provider->getLoggingConfig());
 $logger = $loggerFactory->createLogger();
 
+// Create the project repository
+$projectRepository = new ExternalModuleProjectRepository($logger, $module);
+
 // Initialize services
 $serviceFactory = new ServiceFactory($logger);
 $searchService      = $serviceFactory->createSearchEngineService($provider->getDocumentRepositoryConfig(), $provider->getSearchEngineConfig());
-$projectService     = $serviceFactory->createProjectService($module);
+$projectService     = $serviceFactory->createProjectService($provider->getProjectListConfig(), $projectRepository);
 $schedulerService   = $serviceFactory->createSchedulerService($provider->getSchedulerConfig());
 
 // Create the controller and handle the request

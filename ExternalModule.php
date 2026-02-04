@@ -2,6 +2,7 @@
 namespace Marcus\StudyMetadataSearch\ExternalModule;
 
 use Interface\ExternalModule\Configuration\ExternalModuleConfigProvider;
+use Interface\ExternalModule\Project\ExternalModuleProjectRepository;
 use Application\Service\Cron\CronServiceConfig;
 use Infrastructure\Logging\LoggerFactory;
 use Application\Service\ServiceFactory;
@@ -87,11 +88,14 @@ class ExternalModule extends \ExternalModules\AbstractExternalModule {
 		$loggerFactory = new LoggerFactory($provider->getLoggingConfig());
 		$logger = $loggerFactory->createLogger();
 
+		// Create the project repository
+		$projectRepository = new ExternalModuleProjectRepository($logger, $this);
+
 		// Initialize the service factory
 		$serviceFactory = new ServiceFactory($logger);
 		$schedulerService 	= $serviceFactory->createSchedulerService($schedulerConfig);
 		$searchService      = $serviceFactory->createSearchEngineService($provider->getDocumentRepositoryConfig(), $provider->getSearchEngineConfig());
-		$projectService     = $serviceFactory->createProjectService($this);
+		$projectService     = $serviceFactory->createProjectService($provider->getProjectListConfig(), $projectRepository);
 
 		$message = "The search engine index rebuild has been scheduled.";
 

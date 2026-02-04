@@ -5,7 +5,8 @@ namespace Application\Service;
 use Psr\Log\LoggerInterface;
 
 use Application\Service\Project\ProjectService;
-use \ExternalModules\AbstractExternalModule;
+use Application\Service\Project\ProjectListConfig;
+use Domain\Project\Contract\ProjectRepository;
 
 use Application\Service\Cart\CartService;
 use Application\Service\Cart\CartConfig;
@@ -41,12 +42,13 @@ class ServiceFactory
     /**
      * Creates and returns a new instance of ProjectService.
      *
-     * @param AbstractExternalModule $module The external module instance used to initialize the ProjectService.
+     * @param ProjectListConfig $projectListConfig The project list configuration used to initialize the ProjectService.
+     * @param ProjectRepository $projectRepository The project repository used to initialize the ProjectService.
      * @return ProjectService A configured ProjectService instance.
      */
-    function createProjectService(AbstractExternalModule $module): ProjectService
+    function createProjectService(ProjectListConfig $projectListConfig, ProjectRepository $projectRepository): ProjectService
     {
-        return new ProjectService($this->logger, $module);
+        return new ProjectService($this->logger, $projectListConfig, $projectRepository);
     }
 
 

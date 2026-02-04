@@ -5,22 +5,17 @@ namespace Application\Service\Project;
 use Psr\Log\LoggerInterface;
 use Domain\Document\Document;
 use Domain\Project\Project;
+use Domain\Project\Contract\ProjectRepository;
+use Application\Service\Project\ProjectListConfig;
+use Application\Service\Project\ProjectConfig;
 use function Stringy\create as s;
-use REDCap as REDCap;
-use \ExternalModules\AbstractExternalModule;
 
 /**s
  * ProjectService
  */
 class ProjectService {         
-    /**
-     * module
-     *
-     * @var mixed
-     */
-    protected $module;
 
-        /**
+    /**
      * logger
      *
      * @var LoggerInterface
@@ -28,15 +23,30 @@ class ProjectService {
     protected $logger;
 
     /**
+     * projectListConfig
+     *
+     * @var ProjectListConfig
+     */
+    protected ProjectListConfig $projectListConfig;
+    
+    /**
+     * projectRepository
+     *
+     * @var ProjectRepository
+     */
+    protected ProjectRepository $projectRepository;
+
+    /**
      * __construct
      *
      * @param  mixed $module
      * @return void
      */
-    function __construct(LoggerInterface $logger, AbstractExternalModule $module)
+    function __construct(LoggerInterface $logger, ProjectListConfig $projectListConfig, ProjectRepository $projectRepository)
     {
         $this->logger = $logger;
-        $this->module = $module;
+        $this->projectListConfig = $projectListConfig;
+        $this->projectRepository = $projectRepository;
     }
     
     /**
@@ -46,11 +56,11 @@ class ProjectService {
      * @return array
      */
     function getProjects(bool $includChildren = true) : array {
-        $pids = $this->module->getProjectsWithModuleEnabled();
+        $projectConfigs = $this->projectListConfig->getProjectConfigs();
 
         $projects = [];
-        foreach($pids as $pid){
-            array_push($projects, $this->createProject($pid, $includChildren)); 
+        foreach($projectConfigs as $projectConfig){
+            array_push($projects, $this->createProject($projectConfig->pid, $includChildren)); 
         }
 
         return $projects;
@@ -66,25 +76,7 @@ class ProjectService {
     function getProject(int $pid, bool $includChildren = true) : Project {
         return $this->createProject($pid, $includChildren);
     }
-        
-    /**
-     * getDetails
-     *
-     * @param  mixed $pid
-     * @return array
-     */
-    function getDetails(int $pid) : array {
-        $sql = "select * from redcap_projects where project_id = ?";
-		
-        $details = [];
-        $results = $this->module->query($sql, $pid);
-		if ($results && $results->num_rows > 0)
-		{
-			$details = $results->fetch_assoc();
-		}
-        return $details;
-    }
-    
+           
     /**
      * getLead
      *
@@ -124,23 +116,27 @@ class ProjectService {
      * createProject
      *
      * @param  int $pid
-     * @param  bool $includChildren
+     * @param  bool $includeChildren
      * @return Project
      */
-    function createProject(int $pid, bool $includChildren = true) : Project{
-        $project    = $this->module->getProject($pid);
-        $isEnabled  = filter_var($this->module->getProjectSetting("index-enabled", $pid), FILTER_VALIDATE_BOOLEAN);
-        $denyList   = $this->getFormDenyList($pid);
+    function createProject(int $pid, bool $includeChildren = true) : Project{
+        $project        = $this->projectRepository->getProject($pid);
+        $projectConfig  = $this->projectListConfig->getProjectConfig($pid);
+        
+        $isEnabled  = $projectConfig ? $projectConfig->indexEnabled : false;
+        $denyList   = $projectConfig ? $projectConfig->getFormDenyListAsArray() : [];
 
         $p = new Project();
         $p->project_id      = $pid;
-        $p->title           = $project->getTitle();
+        $p->title           = $project['title'] ?? "Unknown Title";
         $p->enabled         = $isEnabled;
         $p->form_denylist   = $denyList;
 
-        if ($includChildren && $isEnabled){
+        if ($includeChildren && $isEnabled){
+            $projectDetails = $this->projectRepository->getDetails($pid);
+
             $p->documents = $this->getProjectDocuments($p);
-            $p->lead      = $this->getLead($this->getDetails($pid));
+            $p->lead      = $this->getLead($projectDetails);
             $p->forms     = $this->getUniqueForms($p->documents);
         }
 
@@ -157,7 +153,7 @@ class ProjectService {
     function getProjectDocuments(Project $project) : array {
         $documents = [];
 
-        $metadata = REDCap::getDataDictionary($project->project_id, "array");
+        $metadata = $this->projectRepository->getDataDictionary($project->project_id);
 
         foreach($metadata as $field){
             $denials = array_filter($project->form_denylist, function ($value) use ($field) {
@@ -176,23 +172,7 @@ class ProjectService {
         return $documents;
     }
     
-    /**
-     * getExcludedForms
-     *
-     * @param  mixed $pid
-     * @return array
-     */
-    function getFormDenyList(int $pid) : array {
-        $wildcardList = [];
-
-        $denylist = $this->module->getProjectSetting("forms-denylist", $pid);
-        if (strlen($denylist) > 0){
-            $wildcardList = preg_split('/\s*,\s*/', trim($denylist)); 
-        }
-
-        return $wildcardList;
-    }
-        
+       
     /**
      * getUniqueForms
      *

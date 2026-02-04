@@ -10,6 +10,8 @@ use Infrastructure\Search\SearchEngineConfig;
 use Infrastructure\FileSystem\FileSystemConfig;
 use Infrastructure\Scheduler\SchedulerConfig;
 use Application\Service\Cart\CartConfig;
+use Application\Service\Project\ProjectListConfig;
+use Application\Service\Project\ProjectConfig;
 use \ExternalModules\AbstractExternalModule;
 
 class ExternalModuleConfigProvider implements ConfigProvider {
@@ -149,6 +151,37 @@ class ExternalModuleConfigProvider implements ConfigProvider {
 
 		return $apiKeys;
 	}
+
+    /**
+     * Retrieves the project list configuration for the external module.
+     *
+     * @return ProjectListConfig The project list configuration object.
+     */
+    public function getProjectListConfig(): ProjectListConfig {
+        $projects = [];
+
+        // Get all projects with the module enabled
+        $pids = $this->module->getProjectsWithModuleEnabled();
+        
+        // For each project, get its settings
+        foreach($pids as $pid){
+            // Get project settings
+            $indexEnabled   = $this->module->getProjectSetting("index-enabled", $pid);
+            $denylist       = $this->module->getProjectSetting("forms-denylist", $pid) ?? "";
+
+            // Create project config
+            $projectConfig = new ProjectConfig(
+                pid: $pid,
+                indexEnabled: filter_var($indexEnabled, FILTER_VALIDATE_BOOLEAN),
+                formDenyList: $denylist
+            );
+            // Add to list
+            $projects[] = $projectConfig;
+        }
+
+        // This module does not manage projects, return empty config
+        return new ProjectListConfig($projects);
+    }
 
     /**
      * Retrieves the path to the temporary folder used by the module.
