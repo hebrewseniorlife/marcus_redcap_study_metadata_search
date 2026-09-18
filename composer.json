@@ -1,7 +1,7 @@
 {
     "name": "marcus/marcus_study_metadata_search",
     "description": "REDCap external module for searching study metadata",
-    "version" : "1.10",
+    "version" : "1.11",
     "authors": [
         {
             "name": "Jason Rightmyer",
@@ -13,7 +13,7 @@
     },
     "require": {
         "monolog/monolog": "^3.9",
-        "twig/twig": "^3.21",
+        "twig/twig": "^3.28",
         "symfony/http-foundation": "^7.3",
         "twig/string-extra": "^3.21",
         "league/csv": "^9.25",
